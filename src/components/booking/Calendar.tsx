@@ -1,0 +1,162 @@
+'use client';
+
+import { useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import clsx from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+interface CalendarProps {
+    selectedStart: Date | null;
+    selectedEnd: Date | null;
+    onRangeSelect: (start: Date | null, end: Date | null) => void;
+    blockedDates?: string[]; // ISO date strings (yyyy-mm-dd)
+}
+
+const DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+const MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+
+export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, blockedDates }: CalendarProps) {
+    const [currentDate, setCurrentDate] = useState(new Date());
+
+    const getDaysInMonth = (date: Date) => {
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        return new Date(year, month + 1, 0).getDate();
+    };
+
+    const getFirstDayOfMonth = (date: Date) => {
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const day = new Date(year, month, 1).getDay();
+        return day === 0 ? 6 : day - 1; // Adjust for Monday start
+    };
+
+    const handleDayClick = (day: number) => {
+        const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+        clickedDate.setHours(0, 0, 0, 0);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (clickedDate < today) return;
+
+        if (!selectedStart || (selectedStart && selectedEnd)) {
+            onRangeSelect(clickedDate, null);
+        } else {
+            if (clickedDate < selectedStart) {
+                onRangeSelect(clickedDate, selectedStart);
+            } else {
+                onRangeSelect(selectedStart, clickedDate);
+            }
+        }
+    };
+
+    const changeMonth = (delta: number) => {
+        const newDate = new Date(currentDate);
+        newDate.setMonth(newDate.getMonth() + delta);
+        setCurrentDate(newDate);
+    };
+
+    const renderDays = () => {
+        const daysInMonth = getDaysInMonth(currentDate);
+        const firstDayParam = getFirstDayOfMonth(currentDate);
+        const blanks = Array.from({ length: firstDayParam }, (_, i) => <div key={`blank-${i}`} />);
+
+        const days = Array.from({ length: daysInMonth }, (_, i) => {
+            const day = i + 1;
+            const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+            date.setHours(0, 0, 0, 0);
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const isPast = date < today;
+
+            let isSelected = false;
+            let isRange = false;
+
+            if (selectedStart) {
+                const start = new Date(selectedStart);
+                start.setHours(0, 0, 0, 0);
+                if (date.getTime() === start.getTime()) isSelected = true;
+
+                if (selectedEnd) {
+                    const end = new Date(selectedEnd);
+                    end.setHours(0, 0, 0, 0);
+                    if (date.getTime() === end.getTime()) isSelected = true;
+                    if (date > start && date < end) isRange = true;
+                }
+            }
+
+            // Check if blocked
+            const dateString = date.toISOString().split('T')[0];
+            const isBlocked = blockedDates?.includes(dateString);
+
+            return (
+                <div
+                    key={day}
+                    onClick={() => !isPast && !isBlocked && handleDayClick(day)}
+                    className={twMerge(
+                        clsx(
+                            "aspect-square flex items-center justify-center rounded-lg font-montserrat text-sm font-medium transition-all duration-200",
+                            {
+                                "opacity-30 cursor-not-allowed text-gray-500": isPast,
+                                "cursor-pointer hover:bg-white/10 border border-white/5 bg-white/5": !isPast && !isBlocked,
+                                "bg-red-500/10 text-red-500 border border-red-500/20 cursor-not-allowed": isBlocked && !isPast,
+                                "bg-alpine border-blue-500 text-white shadow-[0_0_15px_rgba(0,81,255,0.6)] font-bold": isSelected,
+                                "bg-alpine/20 text-blue-200 border-alpine/30": isRange,
+                            }
+                        )
+                    )}
+                >
+                    {day}
+                </div>
+            );
+        });
+
+        return [...blanks, ...days];
+    };
+
+    return (
+        <div className="glass-panel p-6 md:p-8 rounded-2xl animate-fade-in-up">
+            <div className="flex justify-between items-end mb-8">
+                <h3 className="font-oswald text-xl text-alpine tracking-[0.2em] uppercase flex items-center gap-3">
+                    <span className="text-3xl font-bold text-white/20">01.</span> Disponibilités
+                </h3>
+                <div className="flex gap-2">
+                    <button onClick={() => changeMonth(-1)} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition text-white">
+                        <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <span className="font-oswald text-lg capitalize py-1 px-3 min-w-[140px] text-center text-white">
+                        {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
+                    </span>
+                    <button onClick={() => changeMonth(1)} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition text-white">
+                        <ChevronRight className="w-5 h-5" />
+                    </button>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-7 gap-2 mb-2 text-center text-[10px] font-bold text-alpine uppercase">
+                {DAYS.map(d => <div key={d}>{d}</div>)}
+            </div>
+
+            <div className="grid grid-cols-7 gap-2">
+                {renderDays()}
+            </div>
+
+            <div className="flex justify-center gap-6 mt-6 text-[10px] uppercase tracking-widest font-oswald text-gray-400">
+                <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded bg-white/10 border border-white/20"></div>
+                    <span>Disponible</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded bg-alpine border border-blue-500 shadow-[0_0_8px_rgba(0,81,255,0.6)]"></div>
+                    <span className="text-white">Votre Sélection</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded bg-red-500/20 border border-red-500/50"></div>
+                    <span className="text-red-400">Réservé</span>
+                </div>
+            </div>
+        </div>
+    );
+}
