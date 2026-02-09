@@ -4,6 +4,8 @@ import Hero from "@/components/home/Hero";
 import BookingSection from "@/components/booking/BookingSection";
 import { getUnavailableDates } from "@/actions/booking";
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   const blockedDates = await getUnavailableDates();
 
