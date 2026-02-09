@@ -115,7 +115,7 @@ export default function Header() {
                 {/* Mobile Menu Toggle */}
                 <button
                     onClick={toggleMobileMenu}
-                    className="md:hidden text-white hover:text-alpine transition-colors z-[60] relative p-2"
+                    className="md:hidden text-white hover:text-alpine transition-colors z-[110] relative p-2"
                 >
                     {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
@@ -128,7 +128,7 @@ export default function Header() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
                             transition={{ duration: 0.2 }}
-                            className="fixed inset-0 bg-[#070b13] z-50 flex flex-col items-center justify-center"
+                            className="fixed inset-0 glass-panel z-[100] flex flex-col items-center justify-center pt-24"
                         >
                             <nav className="flex flex-col gap-8 text-center">
                                 <Link
