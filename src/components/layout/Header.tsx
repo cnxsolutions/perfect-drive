@@ -146,6 +146,15 @@ export default function Header() {
                         transition={{ duration: 0.3, ease: 'easeInOut' }}
                         className="fixed inset-0 bg-darkbg z-[100] flex flex-col items-center justify-center px-6"
                     >
+                        {/* Close Button */}
+                        <button
+                            onClick={toggleMobileMenu}
+                            className="absolute top-6 right-6 text-white hover:text-alpine transition-colors p-2"
+                            aria-label="Close menu"
+                        >
+                            <X size={32} />
+                        </button>
+
                         {/* Navigation Links */}
                         <nav className="flex flex-col gap-6 mb-12 w-full max-w-md">
                             <Link
