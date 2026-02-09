@@ -1,6 +1,5 @@
-
 import * as React from 'react';
-import { Section, Text } from '@react-email/components';
+import { Text, Hr } from '@react-email/components';
 import { EmailLayout } from './EmailLayout';
 
 interface CustomerReceivedTemplateProps {
@@ -12,32 +11,70 @@ export const CustomerReceivedTemplate = ({
 }: CustomerReceivedTemplateProps) => {
     return (
         <EmailLayout preview={`Votre demande est bien reçue, ${firstname} !`}>
-            <Text className="text-xl font-bold text-white mb-4">
+            <Text style={headingStyle}>
                 Merci pour votre demande ! 🙌
             </Text>
 
-            <Text className="text-gray-300 mb-6">
+            <Text style={paragraphStyle}>
                 Bonjour {firstname},
             </Text>
 
-            <Text className="text-gray-300 mb-6">
+            <Text style={paragraphStyle}>
                 Nous avons bien reçu votre demande de location chez <strong>Perfect Drive</strong>.
             </Text>
 
-            <Section className="bg-alpine/10 border border-alpine/20 rounded-lg p-6 mb-6">
-                <Text className="text-alpine font-bold text-lg mb-2">Prochaine étape</Text>
-                <Text className="text-gray-300 m-0">
-                    Notre équipe va examiner votre dossier (documents et disponibilité du véhicule).
-                    Vous recevrez une réponse sous <strong>24h maximum</strong>.
-                </Text>
-            </Section>
+            <Hr style={dividerStyle} />
 
-            <Text className="text-gray-400 text-sm text-center italic">
-                Si votre dossier est validé, vous recevrez un lien pour régler l&apos;acompte et bloquer définitivement le véhicule.
+            <Text style={sectionTitleStyle}>Prochaine étape</Text>
+            <Text style={paragraphStyle}>
+                Notre équipe va examiner votre dossier (documents et disponibilité du véhicule).
+                Vous recevrez une réponse sous <strong>24h maximum</strong>.
             </Text>
 
+            <Hr style={dividerStyle} />
+
+            <Text style={disclaimerStyle}>
+                Si votre dossier est validé, vous recevrez un lien pour régler l'acompte et bloquer définitivement le véhicule.
+            </Text>
         </EmailLayout>
     );
+};
+
+// Styles
+const headingStyle: React.CSSProperties = {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginTop: 0,
+    marginBottom: '16px',
+};
+
+const paragraphStyle: React.CSSProperties = {
+    fontSize: '16px',
+    color: '#4b5563',
+    lineHeight: '1.6',
+    margin: '0 0 16px 0',
+};
+
+const sectionTitleStyle: React.CSSProperties = {
+    fontSize: '16px',
+    fontWeight: 'bold',
+    color: '#0051ff',
+    marginTop: '16px',
+    marginBottom: '8px',
+};
+
+const dividerStyle: React.CSSProperties = {
+    borderColor: '#e5e7eb',
+    margin: '24px 0',
+};
+
+const disclaimerStyle: React.CSSProperties = {
+    fontSize: '14px',
+    color: '#9ca3af',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    margin: 0,
 };
 
 export default CustomerReceivedTemplate;

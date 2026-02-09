@@ -1,7 +1,7 @@
-
 import * as React from 'react';
-import { Section, Text, Button, Row, Column, Hr } from '@react-email/components';
+import { Section, Text, Hr } from '@react-email/components';
 import { EmailLayout } from './EmailLayout';
+import { EmailButton } from './EmailButton';
 
 interface AdminNewBookingTemplateProps {
     firstname: string;
@@ -19,9 +19,6 @@ interface AdminNewBookingTemplateProps {
     hasLicenseDocument: boolean;
     hasProofDocument: boolean;
     customerMessage?: string;
-    idDocumentPath?: string;
-    licenseDocumentPath?: string;
-    proofDocumentPath?: string;
 }
 
 export const AdminNewBookingTemplate = ({
@@ -43,79 +40,126 @@ export const AdminNewBookingTemplate = ({
 }: AdminNewBookingTemplateProps) => {
     return (
         <EmailLayout preview={`Nouvelle demande de ${firstname} ${lastname}`}>
-            <Text className="text-xl font-bold text-white mb-4">
+            <Text style={headingStyle}>
                 Nouvelle Demande de Location 🚗
             </Text>
-            <Text className="text-gray-300 mb-6">
-                Une nouvelle demande de réservation a été effectuée sur le site. Voici les détails :
+
+            <Text style={paragraphStyle}>
+                Une nouvelle demande de réservation a été effectuée.
             </Text>
 
-            <Section className="bg-black/20 rounded-lg p-4 mb-6 border border-white/5">
-                <Text className="text-alpine font-bold text-sm tracking-wider uppercase mb-2">Client</Text>
-                <Text className="text-white m-0"><strong>Nom :</strong> {firstname} {lastname}</Text>
-                <Text className="text-white m-0"><strong>Email :</strong> {email}</Text>
-                <Text className="text-white m-0"><strong>Téléphone :</strong> {phone}</Text>
-            </Section>
+            <Hr style={dividerStyle} />
 
-            <Section className="bg-black/20 rounded-lg p-4 mb-6 border border-white/5">
-                <Text className="text-alpine font-bold text-sm tracking-wider uppercase mb-2">Réservation</Text>
+            {/* Client Info */}
+            <Text style={sectionTitleStyle}>Client</Text>
+            <Text style={infoTextStyle}>
+                <strong>Nom :</strong> {firstname} {lastname}<br />
+                <strong>Email :</strong> {email}<br />
+                <strong>Téléphone :</strong> {phone}
+            </Text>
 
-                <Row className="mb-2">
-                    <Column>
-                        <Text className="text-gray-400 text-xs uppercase m-0">Départ</Text>
-                        <Text className="text-white font-bold m-0">{startDate} {startTime && `à ${startTime}`}</Text>
-                    </Column>
-                    <Column>
-                        <Text className="text-gray-400 text-xs uppercase m-0">Retour</Text>
-                        <Text className="text-white font-bold m-0">{endDate} {endTime && `à ${endTime}`}</Text>
-                    </Column>
-                </Row>
+            <Hr style={dividerStyle} />
 
-                <Hr className="border-white/10 my-3" />
+            {/* Booking Info */}
+            <Text style={sectionTitleStyle}>Réservation</Text>
+            <Text style={infoTextStyle}>
+                <strong>Départ :</strong> {startDate} {startTime && `à ${startTime}`}<br />
+                <strong>Retour :</strong> {endDate} {endTime && `à ${endTime}`}<br />
+                <strong>Kilométrage :</strong> {mileage === 'unlimited' ? 'Illimité' : 'Standard'}<br />
+                <strong>Caution :</strong> {depositMethod === 'transfer' ? 'Virement' : 'Empreinte CB'}
+            </Text>
 
-                <Row>
-                    <Column>
-                        <Text className="text-gray-400 text-xs uppercase m-0">Kilométrage</Text>
-                        <Text className="text-white m-0">{mileage === 'unlimited' ? 'Illimité' : 'Standard'}</Text>
-                    </Column>
-                    <Column>
-                        <Text className="text-gray-400 text-xs uppercase m-0">Caution</Text>
-                        <Text className="text-white m-0">{depositMethod === 'transfer' ? 'Virement' : 'Empreinte CB'}</Text>
-                    </Column>
-                </Row>
-            </Section>
+            <Hr style={dividerStyle} />
 
-            <Section className="bg-black/20 rounded-lg p-4 mb-6 border border-white/5">
-                <Text className="text-alpine font-bold text-sm tracking-wider uppercase mb-2">Documents Reçus</Text>
-                <Text className="text-white m-0">
-                    {hasIdDocument ? '✅' : '❌'} Pièce d&apos;identité<br />
-                    {hasLicenseDocument ? '✅' : '❌'} Permis de conduire<br />
-                    {hasProofDocument ? '✅' : '❌'} Justificatif de domicile
-                </Text>
-            </Section>
+            {/* Documents */}
+            <Text style={sectionTitleStyle}>Documents Reçus</Text>
+            <Text style={infoTextStyle}>
+                {hasIdDocument ? '✅' : '❌'} Pièce d'identité<br />
+                {hasLicenseDocument ? '✅' : '❌'} Permis de conduire<br />
+                {hasProofDocument ? '✅' : '❌'} Justificatif de domicile
+            </Text>
 
             {customerMessage && (
-                <Section className="bg-black/20 rounded-lg p-4 mb-6 border border-white/5">
-                    <Text className="text-alpine font-bold text-sm tracking-wider uppercase mb-2">Message du client</Text>
-                    <Text className="text-white italic m-0">&quot;{customerMessage}&quot;</Text>
-                </Section>
+                <>
+                    <Hr style={dividerStyle} />
+                    <Text style={sectionTitleStyle}>Message du client</Text>
+                    <Text style={messageStyle}>
+                        "{customerMessage}"
+                    </Text>
+                </>
             )}
 
-            <Section className="text-center mt-6">
-                <Text className="text-3xl font-bold text-alpine mb-6">
+            <Hr style={dividerStyle} />
+
+            {/* Price and CTA */}
+            <Section style={ctaSectionStyle}>
+                <Text style={priceStyle}>
                     {totalPrice.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
                 </Text>
-
-                <Button
-                    href="https://perfect-drive.fr/admin" // Replace with actual admin URL
-                    className="bg-alpine text-white font-bold py-3 px-8 rounded-full text-center hover:bg-alpine/90 transition-colors w-full"
-                >
+                <EmailButton href="https://perfect-drive.fr/admin">
                     Gérer la demande
-                </Button>
+                </EmailButton>
             </Section>
-
         </EmailLayout>
     );
+};
+
+// Styles (centralized, following DRY)
+const headingStyle: React.CSSProperties = {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginTop: 0,
+    marginBottom: '16px',
+};
+
+const paragraphStyle: React.CSSProperties = {
+    fontSize: '16px',
+    color: '#4b5563',
+    lineHeight: '1.6',
+    margin: '0 0 24px 0',
+};
+
+const sectionTitleStyle: React.CSSProperties = {
+    fontSize: '14px',
+    fontWeight: 'bold',
+    color: '#0051ff',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    marginTop: '16px',
+    marginBottom: '8px',
+};
+
+const infoTextStyle: React.CSSProperties = {
+    fontSize: '14px',
+    color: '#1a1a1a',
+    lineHeight: '1.8',
+    margin: '0 0 16px 0',
+};
+
+const messageStyle: React.CSSProperties = {
+    fontSize: '14px',
+    color: '#4b5563',
+    fontStyle: 'italic',
+    lineHeight: '1.6',
+    margin: '0 0 16px 0',
+};
+
+const dividerStyle: React.CSSProperties = {
+    borderColor: '#e5e7eb',
+    margin: '24px 0',
+};
+
+const ctaSectionStyle: React.CSSProperties = {
+    textAlign: 'center',
+    marginTop: '32px',
+};
+
+const priceStyle: React.CSSProperties = {
+    fontSize: '32px',
+    fontWeight: 'bold',
+    color: '#0051ff',
+    margin: '0 0 24px 0',
 };
 
 export default AdminNewBookingTemplate;

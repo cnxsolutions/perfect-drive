@@ -1,7 +1,7 @@
-
 import * as React from 'react';
-import { Section, Text, Button, Hr } from '@react-email/components';
+import { Text, Hr } from '@react-email/components';
 import { EmailLayout } from './EmailLayout';
+import { EmailButton } from './EmailButton';
 
 interface CustomerPaymentLinkTemplateProps {
     firstname: string;
@@ -13,40 +13,69 @@ export const CustomerPaymentLinkTemplate = ({
     paymentLink,
 }: CustomerPaymentLinkTemplateProps) => {
     return (
-        <EmailLayout preview={`Bonne nouvelle ! Votre véhicule est disponible 🚗`}>
-            <Text className="text-xl font-bold text-white mb-4">
+        <EmailLayout preview="Votre véhicule est disponible 🚗">
+            <Text style={headingStyle}>
                 Votre dossier est validé ! 🎉
             </Text>
 
-            <Text className="text-gray-300 mb-6">
+            <Text style={paragraphStyle}>
                 Bonjour {firstname},
             </Text>
 
-            <Text className="text-gray-300 mb-6">
+            <Text style={paragraphStyle}>
                 Nous avons le plaisir de vous informer que votre demande de location a été acceptée et que le véhicule est disponible.
             </Text>
 
-            <Section className="text-center my-8">
-                <Text className="text-white mb-4">
-                    Pour confirmer définitivement votre réservation, veuillez régler l&apos;acompte via le lien sécurisé ci-dessous :
-                </Text>
-
-                <Button
-                    href={paymentLink}
-                    className="bg-alpine text-white font-bold py-4 px-8 rounded-full text-center hover:bg-alpine/90 transition-colors text-lg" // Larger button for CTA
-                >
-                    Régler l&apos;acompte
-                </Button>
-            </Section>
-
-            <Hr className="border-white/10 my-6" />
-
-            <Text className="text-gray-400 text-xs text-center">
-                Ce lien est valable 24h. Passé ce délai, la réservation sera automatiquement annulée.
+            <Text style={paragraphStyle}>
+                Pour confirmer définitivement votre réservation, veuillez régler l'acompte via le lien sécurisé ci-dessous :
             </Text>
 
+            <div style={ctaContainerStyle}>
+                <EmailButton href={paymentLink}>
+                    Régler l'acompte
+                </EmailButton>
+            </div>
+
+            <Hr style={dividerStyle} />
+
+            <Text style={disclaimerStyle}>
+                Ce lien est valable 24h. Passé ce délai, la réservation sera automatiquement annulée.
+            </Text>
         </EmailLayout>
     );
+};
+
+// Styles
+const headingStyle: React.CSSProperties = {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginTop: 0,
+    marginBottom: '16px',
+};
+
+const paragraphStyle: React.CSSProperties = {
+    fontSize: '16px',
+    color: '#4b5563',
+    lineHeight: '1.6',
+    margin: '0 0 16px 0',
+};
+
+const ctaContainerStyle: React.CSSProperties = {
+    textAlign: 'center',
+    margin: '32px 0',
+};
+
+const dividerStyle: React.CSSProperties = {
+    borderColor: '#e5e7eb',
+    margin: '24px 0',
+};
+
+const disclaimerStyle: React.CSSProperties = {
+    fontSize: '12px',
+    color: '#9ca3af',
+    textAlign: 'center',
+    margin: 0,
 };
 
 export default CustomerPaymentLinkTemplate;

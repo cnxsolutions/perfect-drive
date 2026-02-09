@@ -7,92 +7,114 @@ import {
     Link,
     Section,
     Text,
-    Font,
     Preview,
 } from '@react-email/components';
 
 interface EmailLayoutProps {
     children: React.ReactNode;
-    heading?: string;
     preview?: string;
 }
 
-export const EmailLayout = ({ children, heading, preview }: EmailLayoutProps) => {
+export const EmailLayout = ({ children, preview }: EmailLayoutProps) => {
     return (
         <Html lang="fr">
-            <Head>
-                <Font
-                    fontFamily="Montserrat"
-                    fallbackFontFamily="Verdana"
-                    webFont={{
-                        url: 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap',
-                        format: 'woff2',
-                    }}
-                    fontWeight={400}
-                    fontStyle="normal"
-                />
-                <style>{`
-          body {
-            background-color: #070b13;
-            color: #ffffff;
-            font-family: 'Montserrat', Verdana, sans-serif;
-          }
-          .bg-darkbg { background-color: #070b13; }
-          .bg-panel { background-color: #1a1f2e; }
-          .bg-alpine { background-color: #0051ff; }
-          .text-white { color: #ffffff; }
-          .text-alpine { color: #0051ff; }
-          .text-gray-300 { color: #d1d5db; }
-          .text-gray-400 { color: #9ca3af; }
-          
-          .glass-panel {
-            background-color: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-          }
-        `}</style>
-            </Head>
+            <Head />
             {preview && <Preview>{preview}</Preview>}
-            <Body className="bg-darkbg text-white m-0 p-0" style={{ backgroundColor: '#070b13', color: '#ffffff', fontFamily: "'Montserrat', Verdana, sans-serif" }}>
-                <Container className="mx-auto my-0 p-4 max-w-[600px]">
+            <Body style={bodyStyle}>
+                <Container style={containerStyle}>
                     {/* Header */}
-                    <Section className="mt-8 mb-8 text-center">
-                        <Text className="text-2xl font-bold tracking-widest uppercase text-white m-0" style={{ fontSize: '24px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#ffffff', margin: 0 }}>
-                            Perfect <span className="text-alpine" style={{ color: '#0051ff' }}>Drive</span>
+                    <Section style={headerStyle}>
+                        <Text style={logoStyle}>
+                            Perfect <span style={logoAccentStyle}>Drive</span>
                         </Text>
                     </Section>
 
-                    {/* Main Content Card */}
-                    <Section className="bg-panel rounded-2xl border border-white/10 p-8 shadow-lg" style={{ backgroundColor: '#1a1f2e', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', padding: '32px', boxShadow: '0 10px 15px rgba(0,0,0,0.1)' }}>
-                        {heading && (
-                            <Text className="text-xl font-bold text-white mb-4" style={{ fontSize: '20px', fontWeight: 'bold', color: '#ffffff', marginBottom: '16px' }}>
-                                {heading}
-                            </Text>
-                        )}
+                    {/* Main Content */}
+                    <Section style={contentStyle}>
                         {children}
                     </Section>
 
                     {/* Footer */}
-                    <Section className="mt-8 text-center text-gray-400 text-xs">
-                        <Text className="m-0 mb-4" style={{ margin: '0 0 16px 0', color: '#9ca3af', fontSize: '12px' }}>
+                    <Section style={footerStyle}>
+                        <Text style={footerTextStyle}>
                             © {new Date().getFullYear()} Perfect Drive. Tous droits réservés.
                         </Text>
-                        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-                            <Link href="https://perfect-drive.fr" className="text-alpine hover:underline mx-2" style={{ color: '#0051ff', margin: '0 8px', textDecoration: 'none' }}>
+                        <div style={footerLinksStyle}>
+                            <Link href="https://perfect-drive.fr" style={linkStyle}>
                                 Site Web
                             </Link>
-                            <Link href="mailto:contact@perfect-drive.fr" className="text-alpine hover:underline mx-2" style={{ color: '#0051ff', margin: '0 8px', textDecoration: 'none' }}>
-                                Nous contacter
+                            {' • '}
+                            <Link href="mailto:contact.perfectdrive@gmail.com" style={linkStyle}>
+                                Contact
                             </Link>
                         </div>
-                        <Text className="m-0 text-gray-600" style={{ margin: 0, color: '#4b5563', fontSize: '12px' }}>
-                            Vous recevez cet email car vous avez effectué une demande sur notre site.
-                        </Text>
                     </Section>
                 </Container>
             </Body>
         </Html>
     );
+};
+
+// Styles (centralized, following DRY)
+const bodyStyle: React.CSSProperties = {
+    backgroundColor: '#f6f9fc',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    margin: 0,
+    padding: 0,
+};
+
+const containerStyle: React.CSSProperties = {
+    maxWidth: '600px',
+    margin: '0 auto',
+    padding: '20px',
+};
+
+const headerStyle: React.CSSProperties = {
+    textAlign: 'center',
+    marginBottom: '32px',
+    paddingTop: '20px',
+};
+
+const logoStyle: React.CSSProperties = {
+    fontSize: '28px',
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    margin: 0,
+    letterSpacing: '0.05em',
+};
+
+const logoAccentStyle: React.CSSProperties = {
+    color: '#0051ff',
+};
+
+const contentStyle: React.CSSProperties = {
+    backgroundColor: '#ffffff',
+    borderRadius: '12px',
+    padding: '32px',
+    marginBottom: '24px',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+};
+
+const footerStyle: React.CSSProperties = {
+    textAlign: 'center',
+    paddingTop: '20px',
+    paddingBottom: '20px',
+};
+
+const footerTextStyle: React.CSSProperties = {
+    fontSize: '12px',
+    color: '#6b7280',
+    margin: '0 0 8px 0',
+};
+
+const footerLinksStyle: React.CSSProperties = {
+    fontSize: '12px',
+    color: '#6b7280',
+};
+
+const linkStyle: React.CSSProperties = {
+    color: '#0051ff',
+    textDecoration: 'none',
 };
 
 export default EmailLayout;

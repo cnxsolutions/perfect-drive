@@ -1,6 +1,5 @@
-
 import * as React from 'react';
-import { Section, Text, Row, Column } from '@react-email/components';
+import { Text, Hr } from '@react-email/components';
 import { EmailLayout } from './EmailLayout';
 
 interface CustomerConfirmedTemplateProps {
@@ -17,50 +16,73 @@ export const CustomerConfirmedTemplate = ({
     totalPrice,
 }: CustomerConfirmedTemplateProps) => {
     return (
-        <EmailLayout preview={`Réservation confirmée ✅ - Préparez votre départ !`}>
-            <Text className="text-xl font-bold text-white mb-4">
-                C&apos;est tout bon ! 🏎️
+        <EmailLayout preview="Réservation confirmée ✅">
+            <Text style={headingStyle}>
+                C'est tout bon ! 🏎️
             </Text>
 
-            <Text className="text-gray-300 mb-6">
+            <Text style={paragraphStyle}>
                 Félicitations {firstname}, votre réservation est officiellement confirmée.
             </Text>
 
-            <Section className="bg-black/20 rounded-lg p-6 mb-6 border border-alpine/30">
-                <Text className="text-alpine font-bold text-lg mb-4 text-center">Récapitulatif</Text>
+            <Hr style={dividerStyle} />
 
-                <Row className="mb-4">
-                    <Column>
-                        <Text className="text-gray-400 text-xs uppercase m-0">Départ</Text>
-                        <Text className="text-white font-bold m-0">{startDate}</Text>
-                    </Column>
-                    <Column>
-                        <Text className="text-gray-400 text-xs uppercase m-0">Retour</Text>
-                        <Text className="text-white font-bold m-0">{endDate}</Text>
-                    </Column>
-                </Row>
-                <Row>
-                    <Column>
-                        <Text className="text-gray-400 text-xs uppercase m-0">Total</Text>
-                        <Text className="text-white font-bold m-0">{totalPrice}€</Text>
-                    </Column>
-                </Row>
-            </Section>
+            <Text style={sectionTitleStyle}>Récapitulatif</Text>
+            <Text style={infoTextStyle}>
+                <strong>Départ :</strong> {startDate}<br />
+                <strong>Retour :</strong> {endDate}<br />
+                <strong>Total :</strong> {totalPrice.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+            </Text>
 
-            <Section>
-                <Text className="text-white font-bold mb-2">📍 Lieu de rendez-vous</Text>
-                <Text className="text-gray-300 m-0 mb-4">
-                    Un membre de notre équipe vous contactera sous peu pour convenir des détails exacts de la remise des clés.
-                </Text>
+            <Hr style={dividerStyle} />
 
-                <Text className="text-white font-bold mb-2">📞 Une question ?</Text>
-                <Text className="text-gray-300 m-0">
-                    N&apos;hésitez pas à nous contacter par réponse à cet email ou par téléphone.
-                </Text>
-            </Section>
+            <Text style={sectionTitleStyle}>📍 Lieu de rendez-vous</Text>
+            <Text style={paragraphStyle}>
+                Un membre de notre équipe vous contactera sous peu pour convenir des détails exacts de la remise des clés.
+            </Text>
 
+            <Text style={sectionTitleStyle}>📞 Une question ?</Text>
+            <Text style={paragraphStyle}>
+                N'hésitez pas à nous contacter par réponse à cet email ou par téléphone.
+            </Text>
         </EmailLayout>
     );
+};
+
+// Styles
+const headingStyle: React.CSSProperties = {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginTop: 0,
+    marginBottom: '16px',
+};
+
+const paragraphStyle: React.CSSProperties = {
+    fontSize: '16px',
+    color: '#4b5563',
+    lineHeight: '1.6',
+    margin: '0 0 16px 0',
+};
+
+const sectionTitleStyle: React.CSSProperties = {
+    fontSize: '16px',
+    fontWeight: 'bold',
+    color: '#0051ff',
+    marginTop: '16px',
+    marginBottom: '8px',
+};
+
+const infoTextStyle: React.CSSProperties = {
+    fontSize: '14px',
+    color: '#1a1a1a',
+    lineHeight: '1.8',
+    margin: '0 0 16px 0',
+};
+
+const dividerStyle: React.CSSProperties = {
+    borderColor: '#e5e7eb',
+    margin: '24px 0',
 };
 
 export default CustomerConfirmedTemplate;
