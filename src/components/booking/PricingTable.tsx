@@ -9,7 +9,7 @@ export default function PricingTable() {
                     <thead>
                         <tr className="border-b border-white/10">
                             <th className="text-left p-2 font-normal font-oswald tracking-wider text-white">Durée</th>
-                            <th className="text-left p-2 font-normal font-oswald tracking-wider text-white">Standard</th>
+                            <th className="text-left p-2 font-normal font-oswald tracking-wider text-white">Limité</th>
                             <th className="text-left p-2 font-normal font-oswald tracking-wider text-white">Illimité</th>
                         </tr>
                     </thead>

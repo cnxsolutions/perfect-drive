@@ -20,6 +20,7 @@ export async function createBookingAction(formData: FormData) {
             lastname: formData.get('lastname') as string,
             email: formData.get('email') as string,
             phone: formData.get('phone') as string,
+            address: formData.get('address') as string,
             message: formData.get('message') as string,
         };
 
@@ -77,6 +78,7 @@ export async function createBookingAction(formData: FormData) {
                 customer_lastname: rawData.lastname,
                 customer_email: rawData.email,
                 customer_phone: rawData.phone,
+                customer_address: rawData.address,
                 customer_message: rawData.message,
                 deposit_method: formData.get('deposit_method') as string || 'imprint',
                 document_id_card: filePaths.idCard,

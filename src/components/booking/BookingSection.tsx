@@ -15,7 +15,7 @@ export default function BookingSection({ blockedDates }: BookingSectionProps) {
 
     // Initialize time to next 15min slot
     const [startTime, setStartTime] = useState("10:00");
-    const [endTime, setEndTime] = useState("18:00");
+    const [endTime, setEndTime] = useState("10:00");
 
     const handleRangeSelect = (start: Date | null, end: Date | null) => {
         setStartDate(start);

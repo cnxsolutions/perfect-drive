@@ -15,12 +15,13 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
         startDate: '',
         endDate: '',
         startTime: '10:00',
-        endTime: '18:00',
+        endTime: '10:00',
         mileage: 'standard' as MileageType,
         firstname: '',
         lastname: '',
         email: '',
         phone: '',
+        address: '',
         status: 'approved',
         depositMethod: 'imprint' as 'imprint' | 'cash',
     });
@@ -149,49 +150,61 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
                                     className="p-3 glass-input rounded-lg text-sm"
                                 />
                             </div>
-                            <input
-                                type="email" placeholder="Email" required
-                                value={formData.email}
-                                onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                className="w-full p-3 glass-input rounded-lg text-sm"
-                            />
-                            <input
-                                type="tel" placeholder="Téléphone" required
-                                value={formData.phone}
-                                onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                className="w-full p-3 glass-input rounded-lg text-sm"
-                            />
-                        </div>
-
-                        {/* 3. Documents (Optionnel) */}
-                        <div className="space-y-4">
-                            <h4 className="text-alpine text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                                <span>Documents (Optionnel)</span>
-                            </h4>
-                            <div className="grid grid-cols-1 gap-2">
-                                <label className="text-xs text-gray-400">Pièce d&apos;identité</label>
-                                <input type="file" name="file_id" className="text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20" />
-
-                                <label className="text-xs text-gray-400">Permis de conduire</label>
-                                <input type="file" name="file_license" className="text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20" />
-
-                                <label className="text-xs text-gray-400">Justificatif de domicile</label>
-                                <input type="file" name="file_proof" className="text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20" />
-                            </div>
                         </div>
 
                         {/* 3. Options & Price */}
                         <div className="bg-white/5 p-4 rounded-xl border border-white/5">
-                            <div className="flex justify-between items-center mb-4">
-                                <label className="text-xs text-gray-400 uppercase">Kilométrage</label>
-                                <select
-                                    value={formData.mileage}
-                                    onChange={e => setFormData({ ...formData, mileage: e.target.value as MileageType })}
-                                    className="bg-black/50 border border-white/10 rounded px-2 py-1 text-xs text-white"
-                                >
-                                    <option value="standard">Standard</option>
-                                    <option value="unlimited">Illimité</option>
-                                </select>
+                            <div className="mb-4">
+                                <label className="text-xs text-gray-400 uppercase mb-3 block">Kilométrage</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {/* Limité Option */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, mileage: 'standard' })}
+                                        className={`relative p-3 rounded-xl border-2 transition-all duration-300 ${formData.mileage === 'standard'
+                                            ? 'border-alpine bg-alpine/10 shadow-[0_0_20px_rgba(0,81,255,0.3)]'
+                                            : 'border-white/10 bg-white/5 hover:border-white/20'
+                                            }`}
+                                    >
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.mileage === 'standard' ? 'border-alpine' : 'border-white/30'
+                                                }`}>
+                                                {formData.mileage === 'standard' && (
+                                                    <div className="w-2 h-2 rounded-full bg-alpine"></div>
+                                                )}
+                                            </div>
+                                            <span className={`font-oswald text-xs uppercase tracking-wider ${formData.mileage === 'standard' ? 'text-alpine' : 'text-white'
+                                                }`}>
+                                                Limité
+                                            </span>
+                                            <span className="text-[10px] text-gray-400">150 km/j</span>
+                                        </div>
+                                    </button>
+
+                                    {/* Illimité Option */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, mileage: 'unlimited' })}
+                                        className={`relative p-3 rounded-xl border-2 transition-all duration-300 ${formData.mileage === 'unlimited'
+                                            ? 'border-alpine bg-alpine/10 shadow-[0_0_20px_rgba(0,81,255,0.3)]'
+                                            : 'border-white/10 bg-white/5 hover:border-white/20'
+                                            }`}
+                                    >
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.mileage === 'unlimited' ? 'border-alpine' : 'border-white/30'
+                                                }`}>
+                                                {formData.mileage === 'unlimited' && (
+                                                    <div className="w-2 h-2 rounded-full bg-alpine"></div>
+                                                )}
+                                            </div>
+                                            <span className={`font-oswald text-xs uppercase tracking-wider ${formData.mileage === 'unlimited' ? 'text-alpine' : 'text-white'
+                                                }`}>
+                                                Illimité
+                                            </span>
+                                            <span className="text-[10px] text-gray-400">Sans limite</span>
+                                        </div>
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="flex justify-between items-center mb-4">

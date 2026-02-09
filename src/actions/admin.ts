@@ -145,6 +145,22 @@ export async function getDocumentUrl(path: string) {
 // However, 'crypto' is a Node module. 
 // Let's use the top-level import for randomUUID at the beginning of the file.
 
+export async function deleteBooking(bookingId: string) {
+    try {
+        const { error } = await supabaseAdmin
+            .from('bookings')
+            .delete()
+            .eq('id', bookingId);
+
+        if (error) throw error;
+
+        revalidatePath('/admin');
+        return { success: true };
+    } catch {
+        return { success: false, error: 'Échec de la suppression' };
+    }
+}
+
 export async function createAdminBooking(formData: FormData) {
     try {
         const rawData = {
@@ -157,6 +173,7 @@ export async function createAdminBooking(formData: FormData) {
             lastname: formData.get('lastname') as string,
             email: formData.get('email') as string,
             phone: formData.get('phone') as string,
+            address: formData.get('address') as string,
             status: formData.get('status') as string || 'approved',
             totalPrice: parseFloat(formData.get('totalPrice') as string) || 0,
         };
@@ -213,6 +230,7 @@ export async function createAdminBooking(formData: FormData) {
                 customer_lastname: rawData.lastname,
                 customer_email: rawData.email,
                 customer_phone: rawData.phone,
+                customer_address: rawData.address,
                 document_id_card: filePaths.idCard,
                 document_license: filePaths.license,
                 document_proof: filePaths.proof,

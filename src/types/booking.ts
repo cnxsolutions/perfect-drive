@@ -17,10 +17,12 @@ export interface Booking {
     customer_lastname: string;
     customer_email: string;
     customer_phone: string;
+    customer_address?: string;
     customer_message?: string;
     document_id_card: string;
     document_license: string;
     document_proof: string;
+    deposit_method?: string;
 }
 
 export interface CreateBookingDTO {
