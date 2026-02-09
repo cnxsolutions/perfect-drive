@@ -26,7 +26,7 @@ export default function Hero() {
     const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + images.length) % images.length);
 
     return (
-        <section id="showroom" className="relative pt-24 pb-10 px-4 md:px-6 overflow-hidden min-h-[80vh] flex items-center">
+        <section id="showroom" className="relative pt-32 pb-10 px-4 md:px-6 overflow-hidden min-h-[80vh] flex items-center">
             {/* Background Gradient */}
             <div className="absolute top-0 right-0 w-2/3 h-full bg-gradient-to-l from-blue-900/20 to-transparent pointer-events-none" />
 

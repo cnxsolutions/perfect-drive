@@ -15,7 +15,7 @@ export default function Header() {
         <header className="fixed w-full z-50 glass-panel border-b-0 top-0 rounded-b-2xl">
             <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-4 group z-50 relative">
+                <Link href="/" className="flex items-center gap-4 group z-[110] relative">
                     <div className="w-12 h-12 md:w-16 md:h-16 relative flex items-center justify-center transition-transform group-hover:scale-105">
                         <Image
                             src="/logo.jpeg"
@@ -132,7 +132,7 @@ export default function Header() {
                             className="fixed inset-0 bg-darkbg z-[100] overflow-y-auto"
                         >
                             {/* Menu Content Container */}
-                            <div className="min-h-screen flex flex-col pt-28 pb-12 px-6">
+                            <div className="h-full flex flex-col pt-24 pb-12 px-6 justify-center">
                                 {/* Navigation Links */}
                                 <nav className="flex flex-col gap-6 mb-12">
                                     <Link
