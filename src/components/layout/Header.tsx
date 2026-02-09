@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronDown, Mail, Phone, Instagram, Menu, X } from 'lucide-react';
@@ -10,6 +10,21 @@ export default function Header() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+
+    // Lock body scroll when mobile menu is open
+    useEffect(() => {
+        if (isMobileMenuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        // Cleanup on unmount
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isMobileMenuOpen]);
+
 
     return (
         <header className="fixed w-full z-50 glass-panel border-b-0 top-0 rounded-b-2xl">
@@ -129,10 +144,10 @@ export default function Header() {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: '100%' }}
                             transition={{ duration: 0.3, ease: 'easeInOut' }}
-                            className="fixed inset-0 bg-darkbg z-[100] overflow-y-auto"
+                            className="fixed inset-0 bg-darkbg z-[100] overflow-hidden"
                         >
                             {/* Menu Content Container */}
-                            <div className="h-full flex flex-col pt-24 pb-12 px-6 justify-center">
+                            <div className="h-screen flex flex-col pt-24 pb-12 px-6 justify-center overflow-hidden">
                                 {/* Navigation Links */}
                                 <nav className="flex flex-col gap-6 mb-12">
                                     <Link
