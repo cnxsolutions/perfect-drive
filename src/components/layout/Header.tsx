@@ -116,51 +116,95 @@ export default function Header() {
                 <button
                     onClick={toggleMobileMenu}
                     className="md:hidden text-white hover:text-alpine transition-colors z-[110] relative p-2"
+                    aria-label="Toggle menu"
                 >
-                    {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
                 </button>
 
                 {/* Mobile Menu Overlay */}
                 <AnimatePresence>
                     {isMobileMenuOpen && (
                         <motion.div
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.2 }}
-                            className="fixed inset-0 glass-panel z-[100] flex flex-col items-center justify-center pt-24"
+                            initial={{ opacity: 0, x: '100%' }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: '100%' }}
+                            transition={{ duration: 0.3, ease: 'easeInOut' }}
+                            className="fixed inset-0 bg-darkbg z-[100] overflow-y-auto"
                         >
-                            <nav className="flex flex-col gap-8 text-center">
-                                <Link
-                                    href="#showroom"
-                                    onClick={toggleMobileMenu}
-                                    className="text-3xl font-oswald font-bold text-white pb-4"
-                                >
-                                    VÉHICULES
-                                </Link>
-                                <Link
-                                    href="#booking"
-                                    onClick={toggleMobileMenu}
-                                    className="text-3xl font-oswald font-bold text-white pb-4"
-                                >
-                                    AGENCE
-                                </Link>
+                            {/* Menu Content Container */}
+                            <div className="min-h-screen flex flex-col pt-28 pb-12 px-6">
+                                {/* Navigation Links */}
+                                <nav className="flex flex-col gap-6 mb-12">
+                                    <Link
+                                        href="#showroom"
+                                        onClick={toggleMobileMenu}
+                                        className="text-4xl font-oswald font-bold text-white hover:text-alpine transition-colors border-b border-white/10 pb-4"
+                                    >
+                                        VÉHICULES
+                                    </Link>
+                                    <Link
+                                        href="#booking"
+                                        onClick={toggleMobileMenu}
+                                        className="text-4xl font-oswald font-bold text-white hover:text-alpine transition-colors border-b border-white/10 pb-4"
+                                    >
+                                        AGENCE
+                                    </Link>
+                                </nav>
 
-                                <div className="mt-8 flex flex-col items-center">
-                                    <p className="text-gray-400 text-sm font-montserrat mb-6 uppercase tracking-widest">Nous contacter</p>
-                                    <div className="flex gap-6">
-                                        <a href="https://wa.me/33762711498" target="_blank" className="w-14 h-14 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 hover:bg-green-500 hover:text-white transition-colors">
-                                            <Phone size={24} />
+                                {/* Contact Section */}
+                                <div className="mt-auto">
+                                    <p className="text-gray-400 text-sm font-montserrat mb-6 uppercase tracking-widest text-center">
+                                        Nous contacter
+                                    </p>
+
+                                    {/* Contact Cards */}
+                                    <div className="flex flex-col gap-4 mb-8">
+                                        {/* WhatsApp */}
+                                        <a
+                                            href="https://wa.me/33762711498"
+                                            target="_blank"
+                                            className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl hover:bg-white/10 transition-all"
+                                        >
+                                            <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
+                                                <Phone size={20} />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-white text-sm font-montserrat">WhatsApp</span>
+                                                <span className="text-xs text-gray-400 font-montserrat">07 62 71 14 98</span>
+                                            </div>
                                         </a>
-                                        <a href="https://www.instagram.com/perfectdrive10" target="_blank" className="w-14 h-14 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-500 hover:bg-pink-500 hover:text-white transition-colors">
-                                            <Instagram size={24} />
+
+                                        {/* Email */}
+                                        <a
+                                            href="mailto:contact.perfectdrive@gmail.com"
+                                            className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl hover:bg-white/10 transition-all"
+                                        >
+                                            <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
+                                                <Mail size={20} />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-white text-sm font-montserrat">Email</span>
+                                                <span className="text-xs text-gray-400 font-montserrat">contact.perfectdrive@gmail.com</span>
+                                            </div>
                                         </a>
-                                        <a href="mailto:contact.perfectdrive@gmail.com" className="w-14 h-14 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 hover:bg-blue-500 hover:text-white transition-colors">
-                                            <Mail size={24} />
+
+                                        {/* Instagram */}
+                                        <a
+                                            href="https://www.instagram.com/perfectdrive10"
+                                            target="_blank"
+                                            className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl hover:bg-white/10 transition-all"
+                                        >
+                                            <div className="w-12 h-12 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-500">
+                                                <Instagram size={20} />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-white text-sm font-montserrat">Instagram</span>
+                                                <span className="text-xs text-gray-400 font-montserrat">@perfectdrive10</span>
+                                            </div>
                                         </a>
                                     </div>
                                 </div>
-                            </nav>
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
