@@ -23,10 +23,10 @@ export default function BookingSection({ blockedDates }: BookingSectionProps) {
     };
 
     return (
-        <section id="booking" className="max-w-7xl mx-auto px-6 pb-20 pt-10">
+        <section id="booking" className="max-w-7xl mx-auto px-4 lg:px-6 pb-20 pt-10">
             <div className="grid lg:grid-cols-12 gap-8">
                 {/* Left Column: Calendar & Time */}
-                <div className="lg:col-span-7 space-y-8">
+                <div className="lg:col-span-7 space-y-6 lg:space-y-8">
                     <Calendar
                         selectedStart={startDate}
                         selectedEnd={endDate}
@@ -34,9 +34,9 @@ export default function BookingSection({ blockedDates }: BookingSectionProps) {
                         blockedDates={blockedDates}
                     />
 
-                    <div className="glass-panel p-6 rounded-2xl animate-fade-in-up delay-100">
-                        <h3 className="font-oswald text-xl text-alpine mb-4 tracking-[0.2em] uppercase flex items-center gap-3">
-                            <span className="text-3xl font-bold text-white/20">01.5</span> Horaires
+                    <div className="glass-panel p-4 lg:p-6 rounded-2xl animate-fade-in-up delay-100">
+                        <h3 className="font-oswald text-lg lg:text-xl text-alpine mb-4 tracking-[0.2em] uppercase flex items-center gap-3">
+                            <span className="text-2xl lg:text-3xl font-bold text-white/20">01.5</span> Horaires
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
                             <div>

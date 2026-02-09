@@ -2,16 +2,16 @@ import { Phone } from 'lucide-react';
 
 export default function Footer() {
     return (
-        <footer className="mt-12 mb-20 text-center space-y-4 px-4 animate-fade-in-up">
-            <div className="inline-block p-6 glass-panel rounded-2xl border border-white/10 max-w-2xl w-full">
-                <p className="text-gray-300 font-montserrat text-sm mb-6">
+        <footer className="mt-12 lg:mt-20 mb-20 lg:mb-24 text-center space-y-4 px-4 animate-fade-in-up">
+            <div className="inline-block p-4 lg:p-6 glass-panel rounded-2xl border border-white/10 max-w-2xl w-full mx-auto">
+                <p className="text-gray-300 font-montserrat text-xs lg:text-sm mb-4 lg:mb-6 leading-relaxed">
                     Pour toute autre demande particulière ou spécifique (longue durée, shooting, événement),<br className="hidden md:block" />
                     veuillez nous contacter directement.
                 </p>
                 <a
                     href="https://wa.me/33762711498"
                     target="_blank"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-oswald tracking-wider transition uppercase text-sm font-bold shadow-lg shadow-green-900/20"
+                    className="inline-flex items-center gap-2 px-5 py-3 lg:px-6 lg:py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-oswald tracking-wider transition uppercase text-xs lg:text-sm font-bold shadow-lg shadow-green-900/20 w-full md:w-auto justify-center"
                 >
                     <Phone className="w-4 h-4" /> Contacter sur WhatsApp
                 </a>

@@ -1,14 +1,22 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronDown, Mail, Phone, Instagram } from 'lucide-react';
+import { ChevronDown, Mail, Phone, Instagram, Menu, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export default function Header() {
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+
     return (
         <header className="fixed w-full z-50 glass-panel border-b-0 top-0 rounded-b-2xl">
             <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-4 group">
-                    <div className="w-16 h-16 relative flex items-center justify-center transition-transform group-hover:scale-105">
+                <Link href="/" className="flex items-center gap-4 group z-50 relative">
+                    <div className="w-12 h-12 md:w-16 md:h-16 relative flex items-center justify-center transition-transform group-hover:scale-105">
                         <Image
                             src="/logo.jpeg"
                             alt="Perfect Drive Logo"
@@ -18,10 +26,10 @@ export default function Header() {
                         />
                     </div>
                     <div className="flex flex-col justify-center">
-                        <h1 className="font-oswald text-xl md:text-2xl font-bold tracking-widest text-white uppercase leading-none mb-1 group-hover:text-alpine transition-colors">
+                        <h1 className="font-oswald text-lg md:text-2xl font-bold tracking-widest text-white uppercase leading-none mb-1 group-hover:text-alpine transition-colors">
                             Perfect Drive
                         </h1>
-                        <p className="font-montserrat text-[8px] md:text-[10px] font-bold text-alpine tracking-[0.3em] uppercase leading-none">
+                        <p className="font-montserrat text-[8px] md:text-[10px] font-bold text-alpine tracking-[0.3em] uppercase leading-none hidden md:block">
                             Location Premium
                         </p>
                     </div>
@@ -103,6 +111,59 @@ export default function Header() {
                         </div>
                     </div>
                 </nav>
+
+                {/* Mobile Menu Toggle */}
+                <button
+                    onClick={toggleMobileMenu}
+                    className="md:hidden text-white hover:text-alpine transition-colors z-50 relative p-2"
+                >
+                    {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
+
+                {/* Mobile Menu Overlay */}
+                <AnimatePresence>
+                    {isMobileMenuOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.2 }}
+                            className="fixed inset-0 bg-[#070b13]/95 backdrop-blur-xl z-40 flex flex-col pt-32 px-6"
+                        >
+                            <nav className="flex flex-col gap-8">
+                                <Link
+                                    href="#showroom"
+                                    onClick={toggleMobileMenu}
+                                    className="text-2xl font-oswald font-bold text-white border-b border-white/10 pb-4"
+                                >
+                                    VÉHICULES
+                                </Link>
+                                <Link
+                                    href="#booking"
+                                    onClick={toggleMobileMenu}
+                                    className="text-2xl font-oswald font-bold text-white border-b border-white/10 pb-4"
+                                >
+                                    AGENCE
+                                </Link>
+
+                                <div className="mt-8">
+                                    <p className="text-gray-400 text-sm font-montserrat mb-4 uppercase tracking-widest">Nous contacter</p>
+                                    <div className="flex gap-4">
+                                        <a href="https://wa.me/33762711498" target="_blank" className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
+                                            <Phone />
+                                        </a>
+                                        <a href="https://www.instagram.com/perfectdrive10" target="_blank" className="w-12 h-12 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-500">
+                                            <Instagram />
+                                        </a>
+                                        <a href="mailto:contact.perfectdrive@gmail.com" className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
+                                            <Mail />
+                                        </a>
+                                    </div>
+                                </div>
+                            </nav>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </header>
     );

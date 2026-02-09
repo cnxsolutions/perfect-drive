@@ -129,29 +129,29 @@ export default function BookingForm({ startDate, endDate, startTime, endTime }: 
             )}
 
             {/* Options Panel */}
-            <div className="glass-panel p-6 rounded-2xl flex flex-col gap-4">
-                <h3 className="font-oswald text-xl text-alpine tracking-[0.2em] uppercase flex items-center gap-3">
-                    <span className="text-3xl font-bold text-white/20">02.</span> Option
+            <div className="glass-panel p-4 lg:p-6 rounded-2xl flex flex-col gap-4">
+                <h3 className="font-oswald text-lg lg:text-xl text-alpine tracking-[0.2em] uppercase flex items-center gap-3">
+                    <span className="text-2xl lg:text-3xl font-bold text-white/20">02.</span> Option
                 </h3>
                 <div>
-                    <label className="block text-sm font-oswald uppercase tracking-widest mb-2 text-gray-400">Kilométrage</label>
+                    <label className="block text-xs lg:text-sm font-oswald uppercase tracking-widest mb-2 text-gray-400">Kilométrage</label>
                     <select
                         value={mileage}
                         onChange={(e) => setMileage(e.target.value as 'standard' | 'unlimited')}
-                        className="w-full p-4 glass-input rounded-lg font-montserrat text-white cursor-pointer bg-black/50"
+                        className="w-full p-3 lg:p-4 glass-input rounded-lg font-montserrat text-white cursor-pointer bg-black/50 text-sm"
                     >
                         <option value="standard" className="bg-black text-white">Standard</option>
                         <option value="unlimited" className="bg-black text-white">Illimité</option>
                     </select>
                 </div>
 
-                <div className="mt-4 p-4 border border-blue-500/20 bg-blue-500/5 rounded-xl text-center relative overflow-hidden transition-all duration-300">
+                <div className="mt-2 lg:mt-4 p-4 border border-blue-500/20 bg-blue-500/5 rounded-xl text-center relative overflow-hidden transition-all duration-300">
                     <div className="absolute top-0 left-0 w-1 h-full bg-alpine"></div>
                     <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1">Estimation Prix</p>
-                    <div className="font-oswald text-4xl font-bold text-white">
+                    <div className="font-oswald text-3xl lg:text-4xl font-bold text-white">
                         {typeof price === 'number' ? `${price}€` : price}
                     </div>
-                    <div className={clsx("text-xs font-bold uppercase tracking-wider mt-1", mileage === 'unlimited' ? 'text-alpine' : 'text-gray-400')}>
+                    <div className={clsx("text-[10px] lg:text-xs font-bold uppercase tracking-wider mt-1", mileage === 'unlimited' ? 'text-alpine' : 'text-gray-400')}>
                         {kmLimit}
                     </div>
                     {alertMessage && (
@@ -163,20 +163,20 @@ export default function BookingForm({ startDate, endDate, startTime, endTime }: 
 
                 {/* Deposit Method */}
                 <div className="mt-2">
-                    <label className="block text-sm font-oswald uppercase tracking-widest mb-2 text-gray-400">Mode de Dépôt de Garantie (700€)</label>
+                    <label className="block text-xs lg:text-sm font-oswald uppercase tracking-widest mb-2 text-gray-400">Mode de Dépôt de Garantie (700€)</label>
                     <div className="grid grid-cols-2 gap-3">
                         <label className="cursor-pointer">
                             <input type="radio" name="deposit_method" value="imprint" className="peer hidden" defaultChecked />
                             <div className="border border-white/10 peer-checked:border-alpine peer-checked:bg-alpine/10 rounded-lg p-3 text-center transition-all">
-                                <span className="block text-xs font-bold text-white uppercase">Empreinte CB</span>
-                                <span className="text-[10px] text-gray-500">Non débité</span>
+                                <span className="block text-[10px] lg:text-xs font-bold text-white uppercase">Empreinte CB</span>
+                                <span className="text-[8px] lg:text-[10px] text-gray-500">Non débité</span>
                             </div>
                         </label>
                         <label className="cursor-pointer">
                             <input type="radio" name="deposit_method" value="cash" className="peer hidden" />
                             <div className="border border-white/10 peer-checked:border-alpine peer-checked:bg-alpine/10 rounded-lg p-3 text-center transition-all">
-                                <span className="block text-xs font-bold text-white uppercase">Espèces</span>
-                                <span className="text-[10px] text-gray-500">Sur place</span>
+                                <span className="block text-[10px] lg:text-xs font-bold text-white uppercase">Espèces</span>
+                                <span className="text-[8px] lg:text-[10px] text-gray-500">Sur place</span>
                             </div>
                         </label>
                     </div>
@@ -184,11 +184,11 @@ export default function BookingForm({ startDate, endDate, startTime, endTime }: 
             </div>
 
             {/* Context: Documents */}
-            <div className="glass-panel p-6 md:p-8 rounded-2xl">
-                <h3 className="font-oswald text-xl text-alpine mb-8 tracking-[0.2em] uppercase flex items-center gap-3">
-                    <span className="text-3xl font-bold text-white/20">03.</span> Documents
+            <div className="glass-panel p-4 md:p-8 rounded-2xl">
+                <h3 className="font-oswald text-lg lg:text-xl text-alpine mb-6 lg:mb-8 tracking-[0.2em] uppercase flex items-center gap-3">
+                    <span className="text-2xl lg:text-3xl font-bold text-white/20">03.</span> Documents
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 lg:gap-4">
                     {['id', 'license', 'proof'].map((type) => (
                         <div key={type} className={clsx("relative group", type === 'proof' ? "col-span-2" : "")}>
                             <input
@@ -202,19 +202,19 @@ export default function BookingForm({ startDate, endDate, startTime, endTime }: 
                             <label
                                 htmlFor={`file-${type}`}
                                 className={clsx(
-                                    "flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer transition-all h-full min-h-[100px]",
+                                    "flex flex-col items-center justify-center p-3 lg:p-4 border-2 border-dashed rounded-xl cursor-pointer transition-all h-full min-h-[80px] lg:min-h-[100px]",
                                     files[type as keyof typeof files]
                                         ? "border-green-500 bg-green-500/10"
                                         : "border-white/10 hover:border-alpine hover:bg-alpine/5"
                                 )}
                             >
-                                {files[type as keyof typeof files] ? <Check className="text-green-500 w-6 h-6" /> : (
-                                    type === 'id' ? <CreditCard className="text-gray-400 w-6 h-6 mb-2" /> :
-                                        type === 'license' ? <Car className="text-gray-400 w-6 h-6 mb-2" /> :
-                                            <Home className="text-gray-400 w-6 h-6 mb-2" />
+                                {files[type as keyof typeof files] ? <Check className="text-green-500 w-5 h-5 lg:w-6 lg:h-6" /> : (
+                                    type === 'id' ? <CreditCard className="text-gray-400 w-5 h-5 lg:w-6 lg:h-6 mb-1 lg:mb-2" /> :
+                                        type === 'license' ? <Car className="text-gray-400 w-5 h-5 lg:w-6 lg:h-6 mb-1 lg:mb-2" /> :
+                                            <Home className="text-gray-400 w-5 h-5 lg:w-6 lg:h-6 mb-1 lg:mb-2" />
                                 )}
-                                <span className={clsx("font-oswald text-[10px] uppercase tracking-wider", files[type as keyof typeof files] ? "text-green-400" : "text-gray-300")}>
-                                    {type === 'id' ? 'Identité' : type === 'license' ? 'Permis' : 'Justificatif Domicile (-3 mois)'}
+                                <span className={clsx("font-oswald text-[9px] lg:text-[10px] uppercase tracking-wider text-center", files[type as keyof typeof files] ? "text-green-400" : "text-gray-300")}>
+                                    {type === 'id' ? 'Identité' : type === 'license' ? 'Permis' : 'Justif. Domicile (-3 mois)'}
                                 </span>
                             </label>
                         </div>
@@ -223,19 +223,19 @@ export default function BookingForm({ startDate, endDate, startTime, endTime }: 
             </div>
 
             {/* Confirmation Form */}
-            <div className="glass-panel p-6 md:p-8 rounded-2xl flex-1 flex flex-col">
-                <h3 className="font-oswald text-xl text-alpine mb-8 tracking-[0.2em] uppercase flex items-center gap-3">
-                    <span className="text-3xl font-bold text-white/20">04.</span> Confirmation
+            <div className="glass-panel p-4 md:p-8 rounded-2xl flex-1 flex flex-col">
+                <h3 className="font-oswald text-lg lg:text-xl text-alpine mb-6 lg:mb-8 tracking-[0.2em] uppercase flex items-center gap-3">
+                    <span className="text-2xl lg:text-3xl font-bold text-white/20">04.</span> Confirmation
                 </h3>
 
-                <form onSubmit={handleSubmit} className="space-y-6 font-montserrat flex-1" suppressHydrationWarning>
-                    <div className="grid grid-cols-2 gap-4">
-                        <input type="text" name="firstname" required placeholder="PRÉNOM" className="w-full p-4 glass-input rounded-lg text-white placeholder:text-gray-500" suppressHydrationWarning />
-                        <input type="text" name="lastname" required placeholder="NOM" className="w-full p-4 glass-input rounded-lg text-white placeholder:text-gray-500" suppressHydrationWarning />
+                <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-6 font-montserrat flex-1" suppressHydrationWarning>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" name="firstname" required placeholder="PRÉNOM" className="w-full p-3 lg:p-4 glass-input rounded-lg text-white placeholder:text-gray-500 text-sm" suppressHydrationWarning />
+                        <input type="text" name="lastname" required placeholder="NOM" className="w-full p-3 lg:p-4 glass-input rounded-lg text-white placeholder:text-gray-500 text-sm" suppressHydrationWarning />
                     </div>
-                    <input type="email" name="email" required placeholder="EMAIL" className="w-full p-4 glass-input rounded-lg text-white placeholder:text-gray-500" suppressHydrationWarning />
-                    <input type="tel" name="phone" required placeholder="TÉLÉPHONE" className="w-full p-4 glass-input rounded-lg text-white placeholder:text-gray-500" suppressHydrationWarning />
-                    <textarea name="message" rows={3} placeholder="MESSAGE (OPTIONNEL)" className="w-full p-4 glass-input rounded-lg text-white placeholder:text-gray-500" suppressHydrationWarning></textarea>
+                    <input type="email" name="email" required placeholder="EMAIL" className="w-full p-3 lg:p-4 glass-input rounded-lg text-white placeholder:text-gray-500 text-sm" suppressHydrationWarning />
+                    <input type="tel" name="phone" required placeholder="TÉLÉPHONE" className="w-full p-3 lg:p-4 glass-input rounded-lg text-white placeholder:text-gray-500 text-sm" suppressHydrationWarning />
+                    <textarea name="message" rows={3} placeholder="MESSAGE (OPTIONNEL)" className="w-full p-3 lg:p-4 glass-input rounded-lg text-white placeholder:text-gray-500 text-sm" suppressHydrationWarning></textarea>
 
                     {serverError && (
                         <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-lg">
@@ -247,7 +247,7 @@ export default function BookingForm({ startDate, endDate, startTime, endTime }: 
                         <button
                             type="submit"
                             disabled={!!alertMessage || loading}
-                            className="w-full py-4 mb-3 alpine-btn font-bold text-lg rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full py-3 lg:py-4 mb-3 alpine-btn font-bold text-base lg:text-lg rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             {loading ? <Loader2 className="animate-spin w-5 h-5" /> : 'CONFIRMER MA DEMANDE'}
                         </button>
