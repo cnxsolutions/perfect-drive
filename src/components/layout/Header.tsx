@@ -115,7 +115,7 @@ export default function Header() {
                 {/* Mobile Menu Toggle */}
                 <button
                     onClick={toggleMobileMenu}
-                    className="md:hidden text-white hover:text-alpine transition-colors z-50 relative p-2"
+                    className="md:hidden text-white hover:text-alpine transition-colors z-[60] relative p-2"
                 >
                     {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
@@ -128,35 +128,35 @@ export default function Header() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
                             transition={{ duration: 0.2 }}
-                            className="fixed inset-0 bg-[#070b13]/95 backdrop-blur-xl z-40 flex flex-col pt-32 px-6"
+                            className="fixed inset-0 bg-[#070b13] z-50 flex flex-col items-center justify-center"
                         >
-                            <nav className="flex flex-col gap-8">
+                            <nav className="flex flex-col gap-8 text-center">
                                 <Link
                                     href="#showroom"
                                     onClick={toggleMobileMenu}
-                                    className="text-2xl font-oswald font-bold text-white border-b border-white/10 pb-4"
+                                    className="text-3xl font-oswald font-bold text-white pb-4"
                                 >
                                     VÉHICULES
                                 </Link>
                                 <Link
                                     href="#booking"
                                     onClick={toggleMobileMenu}
-                                    className="text-2xl font-oswald font-bold text-white border-b border-white/10 pb-4"
+                                    className="text-3xl font-oswald font-bold text-white pb-4"
                                 >
                                     AGENCE
                                 </Link>
 
-                                <div className="mt-8">
-                                    <p className="text-gray-400 text-sm font-montserrat mb-4 uppercase tracking-widest">Nous contacter</p>
-                                    <div className="flex gap-4">
-                                        <a href="https://wa.me/33762711498" target="_blank" className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
-                                            <Phone />
+                                <div className="mt-8 flex flex-col items-center">
+                                    <p className="text-gray-400 text-sm font-montserrat mb-6 uppercase tracking-widest">Nous contacter</p>
+                                    <div className="flex gap-6">
+                                        <a href="https://wa.me/33762711498" target="_blank" className="w-14 h-14 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 hover:bg-green-500 hover:text-white transition-colors">
+                                            <Phone size={24} />
                                         </a>
-                                        <a href="https://www.instagram.com/perfectdrive10" target="_blank" className="w-12 h-12 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-500">
-                                            <Instagram />
+                                        <a href="https://www.instagram.com/perfectdrive10" target="_blank" className="w-14 h-14 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-500 hover:bg-pink-500 hover:text-white transition-colors">
+                                            <Instagram size={24} />
                                         </a>
-                                        <a href="mailto:contact.perfectdrive@gmail.com" className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
-                                            <Mail />
+                                        <a href="mailto:contact.perfectdrive@gmail.com" className="w-14 h-14 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 hover:bg-blue-500 hover:text-white transition-colors">
+                                            <Mail size={24} />
                                         </a>
                                     </div>
                                 </div>

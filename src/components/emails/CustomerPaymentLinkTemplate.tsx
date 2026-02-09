@@ -28,14 +28,14 @@ export const CustomerPaymentLinkTemplate = ({
 
             <Section className="text-center my-8">
                 <Text className="text-white mb-4">
-                    Pour confirmer définitivement votre réservation, veuillez régler l'acompte via le lien sécurisé ci-dessous :
+                    Pour confirmer définitivement votre réservation, veuillez régler l&apos;acompte via le lien sécurisé ci-dessous :
                 </Text>
 
                 <Button
                     href={paymentLink}
                     className="bg-alpine text-white font-bold py-4 px-8 rounded-full text-center hover:bg-alpine/90 transition-colors text-lg" // Larger button for CTA
                 >
-                    Régler l'acompte
+                    Régler l&apos;acompte
                 </Button>
             </Section>
 

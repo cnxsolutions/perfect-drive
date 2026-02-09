@@ -1,6 +1,6 @@
 
 import * as React from 'react';
-import { Section, Text, Button, Row, Column, Hr } from '@react-email/components';
+import { Section, Text, Row, Column } from '@react-email/components';
 import { EmailLayout } from './EmailLayout';
 
 interface CustomerConfirmedTemplateProps {
@@ -19,7 +19,7 @@ export const CustomerConfirmedTemplate = ({
     return (
         <EmailLayout preview={`Réservation confirmée ✅ - Préparez votre départ !`}>
             <Text className="text-xl font-bold text-white mb-4">
-                C'est tout bon ! 🏎️
+                C&apos;est tout bon ! 🏎️
             </Text>
 
             <Text className="text-gray-300 mb-6">
@@ -55,7 +55,7 @@ export const CustomerConfirmedTemplate = ({
 
                 <Text className="text-white font-bold mb-2">📞 Une question ?</Text>
                 <Text className="text-gray-300 m-0">
-                    N'hésitez pas à nous contacter par réponse à cet email ou par téléphone.
+                    N&apos;hésitez pas à nous contacter par réponse à cet email ou par téléphone.
                 </Text>
             </Section>
 

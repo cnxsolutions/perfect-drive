@@ -23,7 +23,7 @@ export const CustomerRejectedTemplate = ({
             </Text>
 
             <Text className="text-gray-300 mb-6">
-                Nous vous remercions pour l'intérêt que vous portez à Perfect Drive.
+                Nous vous remercions pour l&apos;intérêt que vous portez à Perfect Drive.
                 Malheureusement, nous ne sommes pas en mesure de donner une suite favorable à votre demande de location pour les dates sélectionnées.
             </Text>
 
@@ -35,8 +35,8 @@ export const CustomerRejectedTemplate = ({
             )}
 
             <Text className="text-gray-300 mb-6">
-                Cela est souvent dû à une indisponibilité du véhicule ou à des critères d'assurance non remplis.
-                N'hésitez pas à effectuer une nouvelle demande pour d'autres dates ou un autre véhicule.
+                Cela est souvent dû à une indisponibilité du véhicule ou à des critères d&apos;assurance non remplis.
+                N&apos;hésitez pas à effectuer une nouvelle demande pour d&apos;autres dates ou un autre véhicule.
             </Text>
 
             <Section className="text-center mt-6">

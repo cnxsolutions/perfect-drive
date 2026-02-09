@@ -1,6 +1,6 @@
 
 import * as React from 'react';
-import { Section, Text, Button } from '@react-email/components';
+import { Section, Text } from '@react-email/components';
 import { EmailLayout } from './EmailLayout';
 
 interface CustomerReceivedTemplateProps {
@@ -33,7 +33,7 @@ export const CustomerReceivedTemplate = ({
             </Section>
 
             <Text className="text-gray-400 text-sm text-center italic">
-                Si votre dossier est validé, vous recevrez un lien pour régler l'acompte et bloquer définitivement le véhicule.
+                Si votre dossier est validé, vous recevrez un lien pour régler l&apos;acompte et bloquer définitivement le véhicule.
             </Text>
 
         </EmailLayout>

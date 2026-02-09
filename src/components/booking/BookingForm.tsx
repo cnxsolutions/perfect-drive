@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Check, Car, Home, CreditCard, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
-// import { twMerge } from 'tailwind-merge'; // Unused
 import { calculatePrice, MileageType } from '@/lib/pricing';
 import { createBookingAction } from '@/actions/booking';
 
@@ -130,11 +129,11 @@ export default function BookingForm({ startDate, endDate, startTime, endTime }: 
 
             {/* Options Panel */}
             <div className="glass-panel p-4 lg:p-6 rounded-2xl flex flex-col gap-4">
-                <h3 className="font-oswald text-lg lg:text-xl text-alpine tracking-[0.2em] uppercase flex items-center gap-3">
+                <h3 className="font-oswald text-lg lg:text-xl text-alpine tracking-[0.2em] uppercase flex items-center justify-center lg:justify-start gap-3">
                     <span className="text-2xl lg:text-3xl font-bold text-white/20">02.</span> Option
                 </h3>
                 <div>
-                    <label className="block text-xs lg:text-sm font-oswald uppercase tracking-widest mb-2 text-gray-400">Kilométrage</label>
+                    <label className="block text-xs lg:text-sm font-oswald uppercase tracking-widest mb-2 text-gray-400 text-center lg:text-left">Kilométrage</label>
                     <select
                         value={mileage}
                         onChange={(e) => setMileage(e.target.value as 'standard' | 'unlimited')}
@@ -163,7 +162,7 @@ export default function BookingForm({ startDate, endDate, startTime, endTime }: 
 
                 {/* Deposit Method */}
                 <div className="mt-2">
-                    <label className="block text-xs lg:text-sm font-oswald uppercase tracking-widest mb-2 text-gray-400">Mode de Dépôt de Garantie (700€)</label>
+                    <label className="block text-xs lg:text-sm font-oswald uppercase tracking-widest mb-2 text-gray-400 text-center lg:text-left">Mode de Dépôt de Garantie (700€)</label>
                     <div className="grid grid-cols-2 gap-3">
                         <label className="cursor-pointer">
                             <input type="radio" name="deposit_method" value="imprint" className="peer hidden" defaultChecked />
@@ -185,7 +184,7 @@ export default function BookingForm({ startDate, endDate, startTime, endTime }: 
 
             {/* Context: Documents */}
             <div className="glass-panel p-4 md:p-8 rounded-2xl">
-                <h3 className="font-oswald text-lg lg:text-xl text-alpine mb-6 lg:mb-8 tracking-[0.2em] uppercase flex items-center gap-3">
+                <h3 className="font-oswald text-lg lg:text-xl text-alpine mb-6 lg:mb-8 tracking-[0.2em] uppercase flex items-center justify-center lg:justify-start gap-3">
                     <span className="text-2xl lg:text-3xl font-bold text-white/20">03.</span> Documents
                 </h3>
                 <div className="grid grid-cols-2 gap-3 lg:gap-4">
@@ -224,7 +223,7 @@ export default function BookingForm({ startDate, endDate, startTime, endTime }: 
 
             {/* Confirmation Form */}
             <div className="glass-panel p-4 md:p-8 rounded-2xl flex-1 flex flex-col">
-                <h3 className="font-oswald text-lg lg:text-xl text-alpine mb-6 lg:mb-8 tracking-[0.2em] uppercase flex items-center gap-3">
+                <h3 className="font-oswald text-lg lg:text-xl text-alpine mb-6 lg:mb-8 tracking-[0.2em] uppercase flex items-center justify-center lg:justify-start gap-3">
                     <span className="text-2xl lg:text-3xl font-bold text-white/20">04.</span> Confirmation
                 </h3>
 

@@ -1,7 +1,7 @@
 export default function PricingTable() {
     return (
         <div className="glass-panel p-4 lg:p-6 rounded-xl animate-fade-in-up delay-200">
-            <h3 className="font-oswald text-lg lg:text-xl text-alpine mb-4 tracking-[0.2em] uppercase flex items-center gap-3">
+            <h3 className="font-oswald text-lg lg:text-xl text-alpine mb-4 tracking-[0.2em] uppercase flex items-center justify-center lg:justify-start gap-3">
                 <span className="text-2xl lg:text-3xl font-bold text-white/20">INFO</span> Tarifs
             </h3>
             <div className="overflow-x-auto">

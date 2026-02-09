@@ -88,7 +88,7 @@ export const AdminNewBookingTemplate = ({
             <Section className="bg-black/20 rounded-lg p-4 mb-6 border border-white/5">
                 <Text className="text-alpine font-bold text-sm tracking-wider uppercase mb-2">Documents Reçus</Text>
                 <Text className="text-white m-0">
-                    {hasIdDocument ? '✅' : '❌'} Pièce d'identité<br />
+                    {hasIdDocument ? '✅' : '❌'} Pièce d&apos;identité<br />
                     {hasLicenseDocument ? '✅' : '❌'} Permis de conduire<br />
                     {hasProofDocument ? '✅' : '❌'} Justificatif de domicile
                 </Text>
@@ -97,7 +97,7 @@ export const AdminNewBookingTemplate = ({
             {customerMessage && (
                 <Section className="bg-black/20 rounded-lg p-4 mb-6 border border-white/5">
                     <Text className="text-alpine font-bold text-sm tracking-wider uppercase mb-2">Message du client</Text>
-                    <Text className="text-white italic m-0">"{customerMessage}"</Text>
+                    <Text className="text-white italic m-0">&quot;{customerMessage}&quot;</Text>
                 </Section>
             )}
 

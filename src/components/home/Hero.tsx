@@ -36,16 +36,16 @@ export default function Hero() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
-                    className="z-10 text-center lg:text-left pt-8 lg:pt-0"
+                    className="z-10 text-center lg:text-left flex flex-col items-center lg:items-start pt-4 lg:pt-0"
                 >
                     <div className="inline-block px-3 py-1 border border-blue-500/30 bg-blue-500/10 rounded mb-4 lg:mb-6">
                         <span className="text-blue-400 text-[10px] lg:text-xs font-bold tracking-widest font-oswald">FLOTTE 2026</span>
                     </div>
-                    <h2 className="font-oswald text-4xl sm:text-5xl md:text-7xl font-bold uppercase leading-[0.9] mb-4 lg:mb-6 text-white">
+                    <h2 className="font-oswald text-4xl sm:text-5xl md:text-7xl font-bold uppercase leading-[0.9] mb-4 lg:mb-6 text-white text-center lg:text-left">
                         Clio V <br />
                         <span className="text-alpine">Esprit Alpine</span>
                     </h2>
-                    <p className="font-montserrat text-gray-400 text-sm sm:text-base lg:text-lg max-w-md mx-auto lg:mx-0 leading-relaxed mb-8 border-l-2 border-alpine pl-4 text-left">
+                    <p className="font-montserrat text-gray-400 text-sm sm:text-base lg:text-lg max-w-md mx-auto lg:mx-0 leading-relaxed mb-8 text-center lg:text-left lg:border-l-2 lg:border-alpine lg:pl-4">
                         Finition Black Edition. Hybride E-Tech 145ch. <br />
                         L&apos;élégance radicale.
                     </p>

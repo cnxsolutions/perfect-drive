@@ -1,0 +1,13 @@
+﻿
+> perfect-drive@0.1.0 lint
+> eslint
+
+
+C:\laragon\www\perfect-drive\src\components\emails\CustomerPaymentLinkTemplate.tsx
+  38:29  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\laragon\www\perfect-drive\src\scripts\test-emails.ts
+  2:8  warning  'React' is defined but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 2 problems (1 error, 1 warning)
+

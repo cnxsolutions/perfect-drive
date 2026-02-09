@@ -1,0 +1,44 @@
+﻿
+> perfect-drive@0.1.0 lint
+> eslint
+
+
+C:\laragon\www\perfect-drive\src\components\emails\AdminNewBookingTemplate.tsx
+   91:56  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  100:61  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  100:79  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\laragon\www\perfect-drive\src\components\emails\CustomerConfirmedTemplate.tsx
+   3:25  warning  'Button' is defined but never used                               @typescript-eslint/no-unused-vars
+   3:46  warning  'Hr' is defined but never used                                   @typescript-eslint/no-unused-vars
+  22:18  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  58:22  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\laragon\www\perfect-drive\src\components\emails\CustomerPaymentLinkTemplate.tsx
+  31:87  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  38:29  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\laragon\www\perfect-drive\src\components\emails\CustomerReceivedTemplate.tsx
+   3:25  warning  'Button' is defined but never used                               @typescript-eslint/no-unused-vars
+  36:81  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\laragon\www\perfect-drive\src\components\emails\CustomerRejectedTemplate.tsx
+  26:44  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  38:90  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  39:18  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  39:70  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\laragon\www\perfect-drive\src\components\emails\EmailLayout.tsx
+   2:1   error    Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+   9:5   warning  'Img' is defined but never used                                @typescript-eslint/no-unused-vars
+  11:5   warning  'Preview' is defined but never used                            @typescript-eslint/no-unused-vars
+  14:5   warning  'Hr' is defined but never used                                 @typescript-eslint/no-unused-vars
+  22:31  warning  'preview' is defined but never used                            @typescript-eslint/no-unused-vars
+  23:35  error    Unexpected any. Specify a different type                       @typescript-eslint/no-explicit-any
+  24:35  error    Unexpected any. Specify a different type                       @typescript-eslint/no-explicit-any
+
+C:\laragon\www\perfect-drive\src\scripts\test-emails.ts
+  2:8  warning  'React' is defined but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 23 problems (15 errors, 8 warnings)
+

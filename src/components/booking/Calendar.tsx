@@ -117,10 +117,10 @@ export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, bl
     };
 
     return (
-        <div className="glass-panel p-6 md:p-8 rounded-2xl animate-fade-in-up">
-            <div className="flex justify-between items-end mb-8">
-                <h3 className="font-oswald text-xl text-alpine tracking-[0.2em] uppercase flex items-center gap-3">
-                    <span className="text-3xl font-bold text-white/20">01.</span> Disponibilités
+        <div className="glass-panel p-4 lg:p-6 md:p-8 rounded-2xl animate-fade-in-up">
+            <div className="flex flex-col lg:flex-row justify-between items-center lg:items-end mb-6 lg:mb-8 gap-4">
+                <h3 className="font-oswald text-lg lg:text-xl text-alpine tracking-[0.2em] uppercase flex items-center gap-3">
+                    <span className="text-2xl lg:text-3xl font-bold text-white/20">01.</span> Disponibilités
                 </h3>
                 <div className="flex gap-2">
                     <button onClick={() => changeMonth(-1)} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition text-white">
