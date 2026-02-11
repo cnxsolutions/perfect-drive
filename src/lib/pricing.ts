@@ -70,6 +70,16 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
         };
     }
 
+    // Check if start is Saturday (blocked)
+    if (isSaturday(start)) {
+        return {
+            totalPrice: 0,
+            days,
+            kmLimit: '',
+            error: "⛔ Départ impossible le samedi. Veuillez commencer le vendredi ou le lundi."
+        };
+    }
+
     // Check if return is Saturday (blocked)
     if (isSaturday(end)) {
         return {
