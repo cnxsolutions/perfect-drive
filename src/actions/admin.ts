@@ -164,17 +164,18 @@ export async function deleteBooking(bookingId: string) {
 export async function createAdminBooking(formData: FormData) {
     try {
         const rawData = {
-            startDate: new Date(formData.get('startDate') as string),
-            endDate: new Date(formData.get('endDate') as string),
+            startDate: formData.get('startDate') as string,
+            endDate: formData.get('endDate') as string,
             startTime: formData.get('startTime') as string,
             endTime: formData.get('endTime') as string,
             mileage: formData.get('mileage') as 'standard' | 'unlimited',
             firstname: formData.get('firstname') as string,
             lastname: formData.get('lastname') as string,
-            email: formData.get('email') as string,
-            phone: formData.get('phone') as string,
-            address: formData.get('address') as string,
+            email: (formData.get('email') as string) || '',
+            phone: (formData.get('phone') as string) || '',
+            address: (formData.get('address') as string) || '',
             status: formData.get('status') as string || 'approved',
+            depositMethod: (formData.get('depositMethod') as string) || 'imprint',
             totalPrice: parseFloat(formData.get('totalPrice') as string) || 0,
         };
 
@@ -231,6 +232,7 @@ export async function createAdminBooking(formData: FormData) {
                 customer_email: rawData.email,
                 customer_phone: rawData.phone,
                 customer_address: rawData.address,
+                deposit_method: rawData.depositMethod,
                 document_id_card: filePaths.idCard,
                 document_license: filePaths.license,
                 document_proof: filePaths.proof,
@@ -246,6 +248,107 @@ export async function createAdminBooking(formData: FormData) {
 
     } catch (error) {
         console.error('Admin Create Action Error:', error);
+        return { success: false, error: "Une erreur inattendue est survenue." };
+    }
+}
+// ... (existing code for createAdminBooking)
+
+export async function updateAdminBooking(bookingId: string, formData: FormData) {
+    try {
+        const startDateStr = formData.get('startDate') as string;
+        const endDateStr = formData.get('endDate') as string;
+
+        // Validations
+        if (!startDateStr || !endDateStr) {
+            return { success: false, error: "Dates manquantes." };
+        }
+
+        const rawData = {
+            startDate: startDateStr,
+            endDate: endDateStr,
+            startTime: formData.get('startTime') as string,
+            endTime: formData.get('endTime') as string,
+            mileage: formData.get('mileage') as 'standard' | 'unlimited',
+            firstname: formData.get('firstname') as string,
+            lastname: formData.get('lastname') as string,
+            email: (formData.get('email') as string) || '',
+            phone: (formData.get('phone') as string) || '',
+            address: (formData.get('address') as string) || '',
+            status: formData.get('status') as string || 'approved',
+            depositMethod: (formData.get('depositMethod') as string) || 'imprint',
+            totalPrice: parseFloat(formData.get('totalPrice') as string) || 0,
+        };
+
+        // Handle Optional Files (Only if new files are uploaded)
+        const files = {
+            idCard: formData.get('file_id') as File,
+            license: formData.get('file_license') as File,
+            proof: formData.get('file_proof') as File,
+        };
+
+        const filePaths: Record<string, string | undefined> = {};
+        const { randomUUID } = await import('crypto');
+
+        for (const [key, file] of Object.entries(files)) {
+            if (file && file.size > 0) {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `ADMIN_${rawData.lastname}_${key}_${randomUUID()}.${fileExt}`;
+                const arrayBuffer = await file.arrayBuffer();
+                const buffer = Buffer.from(arrayBuffer);
+
+                const { data: uploadData, error: uploadError } = await supabaseAdmin
+                    .storage
+                    .from('booking-documents')
+                    .upload(fileName, buffer, {
+                        contentType: file.type,
+                        upsert: false
+                    });
+
+                if (uploadError) {
+                    console.error('Admin Upload Error:', uploadError);
+                } else {
+                    filePaths[key] = uploadData.path;
+                }
+            }
+        }
+
+        // prepare update object
+        const updateData: any = {
+            start_date: rawData.startDate,
+            end_date: rawData.endDate,
+            start_time: rawData.startTime,
+            end_time: rawData.endTime,
+            mileage_type: rawData.mileage,
+            total_price: rawData.totalPrice,
+            status: rawData.status,
+            customer_firstname: rawData.firstname,
+            customer_lastname: rawData.lastname,
+            customer_email: rawData.email,
+            customer_phone: rawData.phone,
+            customer_address: rawData.address,
+            deposit_method: rawData.depositMethod,
+        };
+
+        // Only update document paths if new files were uploaded
+        if (filePaths.idCard) updateData.document_id_card = filePaths.idCard;
+        if (filePaths.license) updateData.document_license = filePaths.license;
+        if (filePaths.proof) updateData.document_proof = filePaths.proof;
+
+        const { error: updateError } = await supabaseAdmin
+            .from('bookings')
+            .update(updateData)
+            .eq('id', bookingId);
+
+        if (updateError) {
+            console.error('DB Update Error:', updateError);
+            return { success: false, error: "Erreur lors de la modification." };
+        }
+
+        revalidatePath('/admin');
+        return { success: true };
+
+    } catch (error) {
+        console.error('Admin Update Action Error:', error);
         return { success: false, error: "Une erreur inattendue est survenue." };
     }
 }

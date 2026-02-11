@@ -11,9 +11,31 @@ import { DateAvailability } from '@/types/booking';
 
 export async function createBookingAction(formData: FormData) {
     try {
+        const startDateStr = formData.get('startDate') as string;
+        const endDateStr = formData.get('endDate') as string;
+
+        // Validations basic
+        if (!startDateStr || !endDateStr) {
+            return { success: false, error: "Dates manquantes." };
+        }
+
+        // Helper to parse safely for Price Calculation (Local Midnight)
+        const parseDateLocal = (dateStr: string) => {
+            const [year, month, day] = dateStr.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        };
+
+        // Helper to format for Email (DD/MM/YYYY)
+        const formatDateEmail = (dateStr: string) => {
+            const [year, month, day] = dateStr.split('-');
+            return `${day}/${month}/${year}`;
+        };
+
         const rawData = {
-            startDate: new Date(formData.get('startDate') as string),
-            endDate: new Date(formData.get('endDate') as string),
+            startDate: parseDateLocal(startDateStr),
+            endDate: parseDateLocal(endDateStr),
+            startDateStr,
+            endDateStr,
             startTime: formData.get('startTime') as string,
             endTime: formData.get('endTime') as string,
             mileage: formData.get('mileage') as MileageType,
@@ -33,8 +55,8 @@ export async function createBookingAction(formData: FormData) {
 
         // Check for booking conflicts
         const { data: hasConflict, error: conflictError } = await supabaseAdmin.rpc('check_booking_conflict', {
-            p_start_date: rawData.startDate.toISOString().split('T')[0],
-            p_end_date: rawData.endDate.toISOString().split('T')[0],
+            p_start_date: rawData.startDateStr,
+            p_end_date: rawData.endDateStr,
             p_start_time: rawData.startTime,
             p_end_time: rawData.endTime,
         });
@@ -85,8 +107,8 @@ export async function createBookingAction(formData: FormData) {
         const { error: insertError } = await supabaseAdmin
             .from('bookings')
             .insert({
-                start_date: rawData.startDate,
-                end_date: rawData.endDate,
+                start_date: rawData.startDateStr,
+                end_date: rawData.endDateStr,
                 start_time: rawData.startTime,
                 end_time: rawData.endTime,
                 mileage_type: rawData.mileage,
@@ -121,8 +143,8 @@ export async function createBookingAction(formData: FormData) {
                     lastname: rawData.lastname,
                     email: rawData.email,
                     phone: rawData.phone,
-                    startDate: rawData.startDate.toLocaleDateString('fr-FR'),
-                    endDate: rawData.endDate.toLocaleDateString('fr-FR'),
+                    startDate: formatDateEmail(rawData.startDateStr),
+                    endDate: formatDateEmail(rawData.endDateStr),
                     startTime: rawData.startTime,
                     endTime: rawData.endTime,
                     totalPrice: priceResult.totalPrice,

@@ -58,6 +58,13 @@ export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, av
         setCurrentDate(newDate);
     };
 
+    const formatDateLocal = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     const getAvailabilityForDate = (dateString: string): DateAvailability | undefined => {
         return availability.find(a => a.date === dateString);
     };
@@ -93,53 +100,114 @@ export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, av
             }
 
             // Check availability
-            const dateString = date.toISOString().split('T')[0];
+            const dateString = formatDateLocal(date);
             const dateAvailability = getAvailabilityForDate(dateString);
             const isFullyBlocked = dateAvailability?.isFullyBlocked || false;
 
             // Only show partial availability for END dates (isEndDate = true)
             // Start and middle dates should remain fully blocked
             const hasEndDateBooking = dateAvailability?.existingBookings.some(b => b.isEndDate) || false;
-            const hasPartialAvailability = !isFullyBlocked && hasEndDateBooking;
+            const hasStartDateBooking = dateAvailability?.existingBookings.some(b => b.isStartDate) || false;
+
+            // Block if day has BOTH return and departure (Turnover day)
+            const isTurnoverDay = hasEndDateBooking && hasStartDateBooking;
 
             // If there are bookings but none are end dates, treat as fully blocked
             const hasNonEndDateBookings = dateAvailability?.existingBookings.some(b => !b.isEndDate) || false;
-            const shouldBeBlocked = isFullyBlocked || (hasNonEndDateBookings && !hasEndDateBooking);
 
-            // Get return time for partial availability display (only for end dates)
+            // Block if:
+            // 1. Fully blocked by admin/full day
+            // 2. Has bookings but is NOT an end date (i.e. start or middle day)
+            // 3. Is a turnover day (both end and start)
+            const shouldBeBlocked = isFullyBlocked || (hasNonEndDateBookings && !hasEndDateBooking) || isTurnoverDay;
+
+            const hasPartialAvailability = !isFullyBlocked && hasEndDateBooking && !isTurnoverDay;
+
+            // Get return and departure times for partial availability display
             let returnTimeText = '';
-            if (hasPartialAvailability && dateAvailability) {
-                const latestBooking = dateAvailability.existingBookings
+            let departTimeText = '';
+
+            if (dateAvailability && !isFullyBlocked) {
+                // Return Time (for end dates)
+                const latestReturn = dateAvailability.existingBookings
                     .filter(b => b.isEndDate)
                     .sort((a, b) => b.endTime.localeCompare(a.endTime))[0];
 
-                if (latestBooking) {
-                    returnTimeText = latestBooking.endTime.substring(0, 5); // HH:MM format
+                if (latestReturn) {
+                    returnTimeText = latestReturn.endTime.substring(0, 5);
+                }
+
+                // Departure Time (for start dates)
+                const earliestDepart = dateAvailability.existingBookings
+                    .filter(b => b.isStartDate)
+                    .sort((a, b) => a.startTime.localeCompare(b.startTime))[0];
+
+                if (earliestDepart) {
+                    departTimeText = earliestDepart.startTime.substring(0, 5);
                 }
             }
+
+            // Check if selection overlaps with blocked dates
+            let isRangeBlocked = false;
+            if (selectedStart && !selectedEnd && !isPast && !isFullyBlocked) {
+                const start = new Date(selectedStart);
+                start.setHours(0, 0, 0, 0);
+
+                // If hovering or clicking a date after start
+                if (date > start) {
+                    // Check all days between start and current date
+                    const daysDiff = (date.getTime() - start.getTime()) / (1000 * 3600 * 24);
+                    for (let i = 1; i < daysDiff; i++) {
+                        const checkDate = new Date(start);
+                        checkDate.setDate(checkDate.getDate() + i);
+                        const checkString = formatDateLocal(checkDate);
+                        const checkAvail = getAvailabilityForDate(checkString);
+
+                        // If any day in between is fully blocked (or is a start/middle day of another booking), the range is invalid
+                        if (checkAvail?.isFullyBlocked) {
+                            isRangeBlocked = true;
+                            break;
+                        }
+                        // Check if it's a middle day (has bookings but neither start nor end) - should be blocked
+                        const isMiddleDay = checkAvail?.existingBookings.some(b => !b.isStartDate && !b.isEndDate);
+                        if (isMiddleDay) {
+                            isRangeBlocked = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            const isDisabled = shouldBeBlocked || isRangeBlocked;
 
             return (
                 <div
                     key={day}
-                    onClick={() => !isPast && !shouldBeBlocked && handleDayClick(day)}
+                    onClick={() => !isPast && !isDisabled && handleDayClick(day)}
                     className={twMerge(
                         clsx(
                             "relative aspect-square flex flex-col items-center justify-center rounded-lg font-montserrat text-sm font-medium transition-all duration-200",
                             {
-                                "opacity-30 cursor-not-allowed text-gray-500": isPast,
-                                "cursor-pointer hover:bg-white/10 border border-white/5 bg-white/5": !isPast && !shouldBeBlocked && !hasPartialAvailability,
-                                "bg-red-500/10 text-red-500 border border-red-500/20 cursor-not-allowed": shouldBeBlocked && !isPast,
-                                "cursor-pointer hover:bg-orange-500/10 border border-orange-500/30 bg-orange-500/5": hasPartialAvailability && !isPast,
+                                "opacity-30 cursor-not-allowed text-gray-500": isPast || (isRangeBlocked && !isFullyBlocked), // Visual blocked state for invalid ranges
+                                "cursor-pointer hover:bg-white/10 border border-white/5 bg-white/5": !isPast && !isDisabled && !hasPartialAvailability,
+                                "bg-red-500/10 text-red-500 border border-red-500/20 cursor-not-allowed": isDisabled && !isPast,
+                                "cursor-pointer hover:bg-orange-500/10 border border-orange-500/30 bg-orange-500/5": hasPartialAvailability && !isDisabled && !isPast,
                                 "bg-alpine border-blue-500 text-white shadow-[0_0_15px_rgba(0,81,255,0.6)] font-bold": isSelected,
                                 "bg-alpine/20 text-blue-200 border-alpine/30": isRange,
+                                "bg-red-900/20 border-red-500/50 opacity-50": isRangeBlocked && !isPast // Specific style for blocked range attempt
                             }
                         )
                     )}
                 >
                     <span>{day}</span>
-                    {hasPartialAvailability && returnTimeText && !isSelected && !isRange && (
-                        <div className="absolute bottom-0.5 left-0 right-0 flex items-center justify-center gap-0.5">
-                            <span className="text-[7px] md:text-[8px] text-orange-400 font-bold">Retour {returnTimeText}</span>
+                    {!isSelected && !isRange && (
+                        <div className="absolute bottom-0.5 left-0 right-0 flex flex-col items-center justify-center gap-0 leading-none">
+                            {returnTimeText && (
+                                <span className="text-[7px] md:text-[8px] text-orange-400 font-bold">Retour {returnTimeText}</span>
+                            )}
+                            {departTimeText && (
+                                <span className="text-[7px] md:text-[8px] text-blue-400 font-bold">Départ {departTimeText}</span>
+                            )}
                         </div>
                     )}
                 </div>

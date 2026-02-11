@@ -1,42 +1,59 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Calendar as CalendarIcon, User, Loader2, Check } from 'lucide-react';
-import { createAdminBooking } from '@/actions/admin';
+import { updateAdminBooking } from '@/actions/admin';
 import { calculatePrice, MileageType } from '@/lib/pricing';
 import { useRouter } from 'next/navigation';
+import { Booking } from '@/types/booking';
 
 import Calendar from '@/components/booking/Calendar';
 
-export default function CreateBookingModal({ onClose }: { onClose: () => void }) {
+interface EditBookingModalProps {
+    booking: Booking;
+    onClose: () => void;
+}
+
+export default function EditBookingModal({ booking, onClose }: EditBookingModalProps) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [availability, setAvailability] = useState<any[]>([]);
     const [minStartTime, setMinStartTime] = useState<string | null>(null);
+    const [mounted, setMounted] = useState(false);
 
-    // Form Data
+    // Form Data - Pre-filled
     const [formData, setFormData] = useState({
-        startDate: '',
-        endDate: '',
-        startTime: '10:00',
-        endTime: '10:00',
-        mileage: 'standard' as MileageType,
-        firstname: '',
-        lastname: '',
-        email: '',
-        phone: '',
-        address: '',
-        status: 'approved',
-        depositMethod: 'imprint' as 'imprint' | 'cash',
+        startDate: booking.start_date,
+        endDate: booking.end_date,
+        startTime: booking.start_time,
+        endTime: booking.end_time,
+        mileage: booking.mileage_type as MileageType,
+        firstname: booking.customer_firstname,
+        lastname: booking.customer_lastname,
+        email: booking.customer_email,
+        phone: booking.customer_phone,
+        address: booking.customer_address || '',
+        status: booking.status,
+        depositMethod: (booking.deposit_method as 'imprint' | 'cash') || 'imprint',
+        totalPrice: booking.total_price.toString(),
     });
 
-    // Fetch availability on mount
+    // Handle hydration mismatch
     useEffect(() => {
+        setMounted(true);
         const fetchAvailability = async () => {
             const dates = await import('@/actions/booking').then(mod => mod.getBookingAvailability());
             setAvailability(dates);
         };
         fetchAvailability();
+
+        // Prevent body scroll when modal is open
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = 'unset';
+            setMounted(false);
+        };
     }, []);
 
     // Calculate price as derived state
@@ -79,7 +96,7 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
         }));
     };
 
-    // Calculate minimum start time based on partial availability (Same logic as BookingSection)
+    // Calculate minimum start time based on partial availability
     const updateMinStartTime = () => {
         if (!formData.startDate) {
             setMinStartTime(null);
@@ -119,13 +136,9 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
         e.preventDefault();
         setLoading(true);
 
-        const data = new FormData(e.currentTarget as HTMLFormElement); // Automatically grabs inputs including files
-        Object.entries(formData).forEach(([key, value]) => {
-            if (!data.has(key)) {
-                data.append(key, value);
-            }
-        });
+        const data = new FormData(e.currentTarget as HTMLFormElement); // Automatically grabs inputs
 
+        // Manual append for state-controlled inputs ensuring they are present
         data.set('startDate', formData.startDate);
         data.set('endDate', formData.endDate);
         data.set('startTime', formData.startTime);
@@ -139,7 +152,7 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
         data.set('depositMethod', formData.depositMethod);
         data.set('totalPrice', price.toString());
 
-        const res = await createAdminBooking(data);
+        const res = await updateAdminBooking(booking.id, data);
 
         if (res.success) {
             router.refresh();
@@ -154,13 +167,15 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
     const calendarStart = formData.startDate ? parseDateLocal(formData.startDate) : null;
     const calendarEnd = formData.endDate ? parseDateLocal(formData.endDate) : null;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+    if (!mounted) return null;
+
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
             <div className="bg-darkbg border border-white/10 w-full max-w-5xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[95vh]">
 
                 {/* Header */}
                 <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
-                    <h3 className="font-oswald text-lg uppercase tracking-widest text-white">Nouvelle Réservation</h3>
+                    <h3 className="font-oswald text-lg uppercase tracking-widest text-white">Modifier Réservation</h3>
                     <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition">
                         <X className="w-5 h-5 text-gray-400" />
                     </button>
@@ -173,10 +188,8 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
                             <CalendarIcon className="w-3 h-3" /> Disponibilités
                         </h4>
 
-                        {/* Import Calendar dynamically or assuming it's imported at top */}
                         <div className="scale-90 origin-top-left w-full">
                             <div className="mb-6">
-                                {/* Only render if availability is loaded to avoid jump */}
                                 {availability.length > 0 ? (
                                     <Calendar
                                         selectedStart={calendarStart}
@@ -226,7 +239,7 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
 
                     {/* Right Panel: Form */}
                     <div className="w-full lg:w-1/2 p-6 overflow-y-auto">
-                        <form id="create-booking-form" onSubmit={handleSubmit} className="space-y-6">
+                        <form id="edit-booking-form" onSubmit={handleSubmit} className="space-y-6">
 
                             {/* Client */}
                             <div className="space-y-4">
@@ -267,14 +280,14 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
                                 </div>
                             </div>
 
-                            {/* Documents (Optional) */}
+                            {/* Documents */}
                             <div className="space-y-4">
                                 <h4 className="text-alpine text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                                    <Check className="w-3 h-3" /> Documents (Optionnel)
+                                    <Check className="w-3 h-3" /> Documents (Modifier si besoin)
                                 </h4>
                                 <div className="space-y-3">
                                     <div className="space-y-1">
-                                        <label className="text-[10px] text-gray-500 uppercase">Pièce d'identité</label>
+                                        <label className="text-[10px] text-gray-500 uppercase">Pièce d'identité (Laisser vide pour conserver)</label>
                                         <input type="file" name="file_id" className="w-full text-xs text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20" />
                                     </div>
                                     <div className="space-y-1">
@@ -293,7 +306,6 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
                                 <div className="mb-4">
                                     <label className="text-xs text-gray-400 uppercase mb-3 block">Kilométrage</label>
                                     <div className="grid grid-cols-2 gap-3">
-                                        {/* Limité Option */}
                                         <button
                                             type="button"
                                             onClick={() => setFormData({ ...formData, mileage: 'standard' })}
@@ -317,7 +329,6 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
                                             </div>
                                         </button>
 
-                                        {/* Illimité Option */}
                                         <button
                                             type="button"
                                             onClick={() => setFormData({ ...formData, mileage: 'unlimited' })}
@@ -356,14 +367,14 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
                                 </div>
 
                                 <div className="flex justify-between items-center border-t border-white/10 pt-4">
-                                    <span className="text-sm font-bold text-gray-300">Total Estimé</span>
+                                    <span className="text-sm font-bold text-gray-300">Total Recalculé</span>
                                     <span className="text-2xl font-oswald text-alpine font-bold">{price}€</span>
                                 </div>
                             </div>
 
                             {/* Status */}
                             <div className="space-y-2">
-                                <label className="text-xs text-gray-400 uppercase block">Statut Initial</label>
+                                <label className="text-xs text-gray-400 uppercase block">Statut</label>
                                 <div className="flex gap-4 flex-wrap">
                                     <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
                                         <input
@@ -414,14 +425,15 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
                     </button>
                     <button
                         type="submit"
-                        form="create-booking-form"
+                        form="edit-booking-form"
                         disabled={loading}
                         className="flex-1 py-3 bg-alpine text-white font-bold uppercase tracking-wider text-sm rounded hover:bg-alpine/90 transition flex items-center justify-center gap-2"
                     >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4" /> Créer</>}
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4" /> Enregistrer</>}
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

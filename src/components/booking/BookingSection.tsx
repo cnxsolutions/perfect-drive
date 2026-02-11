@@ -31,7 +31,12 @@ export default function BookingSection({ availability }: BookingSectionProps) {
             return;
         }
 
-        const dateString = startDate.toISOString().split('T')[0];
+        // Format date as YYYY-MM-DD in local time
+        const year = startDate.getFullYear();
+        const month = String(startDate.getMonth() + 1).padStart(2, '0');
+        const day = String(startDate.getDate()).padStart(2, '0');
+        const dateString = `${year}-${month}-${day}`;
+
         const dateAvail = availability.find(a => a.date === dateString);
 
         if (dateAvail && !dateAvail.isFullyBlocked && dateAvail.existingBookings.length > 0) {
