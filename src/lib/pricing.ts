@@ -39,20 +39,15 @@ function getWeekdayPackage(days: number, mileage: MileageType): { price: number;
 
 // Helper: Get weekend package rate
 function getWeekendPackage(days: number, mileage: MileageType, endsOnSunday: boolean = false): { price: number; km: number } | null {
-    // Friday-Sunday ending exactly on Sunday = 72h package pricing
-    if (days === 2 && endsOnSunday) {
-        return mileage === 'unlimited'
-            ? { price: 280, km: 0 }
-            : { price: 200, km: 400 };
-    }
-
-    if (days === 2) { // 48h weekend
+    // 48h weekend
+    if (days === 2) {
         return mileage === 'unlimited'
             ? { price: 200, km: 0 }
             : { price: 150, km: 350 };
     }
 
-    if (days === 3) { // 72h weekend
+    // 72h weekend
+    if (days === 3) {
         return mileage === 'unlimited'
             ? { price: 280, km: 0 }
             : { price: 200, km: 400 };
@@ -151,9 +146,9 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
             if (differenceInCalendarDays(sunday, start) <= days) {
                 const afterDays = differenceInCalendarDays(end, sunday);
 
-                // Special case: if end IS this Sunday, use 72h pricing
+                // Special case: if end IS this Sunday
                 if (afterDays === 0 && isSunday(end)) {
-                    const weekendPkg = getWeekendPackage(2, mileage, true); // 72h pricing for Fri-Sun
+                    const weekendPkg = getWeekendPackage(2, mileage, true); // 48h pricing
 
                     if (weekendPkg) {
                         // Count weekdays BEFORE Friday (excluding Thursday)
@@ -170,7 +165,7 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
                         combinations.push({
                             totalPrice,
                             kmLimit: totalKm,
-                            breakdown: `${beforeDays}j sem (${beforePrice}€) + Ven-Dim 72h (${weekendPkg.price}€)`
+                            breakdown: `${beforeDays}j sem (${beforePrice}€) + Ven-Dim 48h (${weekendPkg.price}€)`
                         });
                     }
                 }
