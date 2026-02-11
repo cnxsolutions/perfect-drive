@@ -60,11 +60,38 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
     const days = differenceInCalendarDays(end, start);
 
     // Basic validations
+    if (days < 0) { // Should be days <= 0? Wait, differenceInCalendarDays returns integer days.
+        // If same day, days = 0.
+    }
+
+    // Calculate precise duration in hours to enforce 20h minimum
+    const startTimestamp = start.getTime();
+    const endTimestamp = end.getTime();
+    const durationHours = (endTimestamp - startTimestamp) / (1000 * 60 * 60);
+
+    if (durationHours < 20) {
+        return {
+            totalPrice: 0,
+            days: 0,
+            kmLimit: '',
+            error: "⚠️ La durée pour une location est de 20h minimum."
+        };
+    }
+
+    if (days <= 0 && durationHours < 24) {
+        // Handle same-day or <24h but >20h logic if needed, 
+        // currently covered by getWeekdayRate or handled as 1 day.
+        // If days=0 (same calendar day), differenceInCalendarDays is 0.
+        // But we might have 20h on same day? (e.g. 02:00 to 23:00).
+        // The existing logic used `if (days <= 0)`.
+    }
+
     if (days <= 0) {
+        // If it's less than 24h (and passed 20h check), we charge 1 day rate?
         const rate = getWeekdayRate(mileage);
         return {
             totalPrice: rate.price,
-            days: 0,
+            days: 1, // Count as 1 day
             kmLimit: mileage === 'unlimited' ? 'Illimité' : `${rate.km} km`,
             error: null
         };
@@ -76,7 +103,7 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
             totalPrice: 0,
             days,
             kmLimit: '',
-            error: "⛔ Départ impossible le samedi. Veuillez commencer le vendredi ou le lundi."
+            error: "⛔ Départ impossible le samedi. Veuillez commencer le vendredi ou dimanche."
         };
     }
 
@@ -90,144 +117,114 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
         };
     }
 
-    // Check if period includes weekend
-    let hasWeekend = false;
-    for (let i = 0; i <= days; i++) {
-        if (isWeekend(addDays(start, i))) {
-            hasWeekend = true;
-            break;
-        }
-    }
+    // Recursive function to find the optimal price path
+    // Memoization map: date string -> result
+    const memo = new Map<number, { price: number; breakdown: string; km: number }>();
 
-    // Pure weekday booking (no weekend)
-    if (!hasWeekend) {
-        const pkg = getWeekdayPackage(days, mileage);
-        if (pkg) {
-            return {
-                totalPrice: pkg.price,
-                days,
-                kmLimit: mileage === 'unlimited' ? 'Illimité' : `${pkg.km} km`,
-                error: null
-            };
+    function solve(currentDate: Date): { price: number; breakdown: string; km: number } | null {
+        const currentTimestamp = currentDate.getTime();
+        if (memo.has(currentTimestamp)) {
+            return memo.get(currentTimestamp)!;
         }
 
+        const remainingDays = differenceInCalendarDays(end, currentDate);
+
+        // Base case: Reached the end
+        if (remainingDays === 0) {
+            return { price: 0, breakdown: '', km: 0 };
+        }
+
+        // Base case: Overshot (invalid path)
+        if (remainingDays < 0) {
+            return null;
+        }
+
+        let bestOption: { price: number; breakdown: string; km: number } | null = null;
         const rate = getWeekdayRate(mileage);
-        return {
-            totalPrice: days * rate.price,
-            days,
-            kmLimit: mileage === 'unlimited' ? 'Illimité' : `${days * rate.km} km`,
-            error: null
-        };
-    }
 
-    // Weekend booking - check minimum duration
-    if (days < 2) {
-        const error = isSunday(start) ? "Pas de location 24h le dimanche." : "Minimum 48h le week-end";
-        return { totalPrice: 0, days, kmLimit: '', error };
-    }
+        // --- Option 1: Weekday (1 day) ---
+        const nextDay = addDays(currentDate, 1);
 
-    // Pure weekend booking
-    if (isFriday(start) && (isSunday(end) || isMonday(end))) {
-        const endsOnSunday = isSunday(end);
-        const pkg = getWeekendPackage(days, mileage, endsOnSunday);
-        if (pkg) {
-            return {
-                totalPrice: pkg.price,
-                days,
-                kmLimit: mileage === 'unlimited' ? 'Illimité' : `${pkg.km} km`,
-                error: null
-            };
+        // Allowed if:
+        // 1. We don't land on Saturday (blocked return)
+        // 2. OR Exception: Sun->Mon (24h) is allowed.
+
+        if (!isSaturday(nextDay)) {
+            const res = solve(nextDay);
+            if (res) {
+                const optionPrice = rate.price + res.price;
+                const option = {
+                    price: optionPrice,
+                    breakdown: `1j (${rate.price}€) + ` + res.breakdown,
+                    km: rate.km + res.km
+                };
+
+                if (!bestOption || option.price < bestOption.price) {
+                    bestOption = option;
+                }
+            }
         }
-    }
 
-    // Mixed booking: optimize
-    const combinations: PriceCombination[] = [];
-    const rate = getWeekdayRate(mileage);
+        // --- Option 2: Weekend Package 48h (Fri-Sun) ---
+        if (isFriday(currentDate) && remainingDays >= 2) {
+            const target = addDays(currentDate, 2);
+            const pkg = getWeekendPackage(2, mileage, true); // 48h
 
-    // Find Friday in range and calculate optimal combinations
-    for (let i = 0; i <= days; i++) {
-        const currentDay = addDays(start, i);
-
-        if (isFriday(currentDay)) {
-            // Try Fri-Sun (2 calendar days)
-            const sunday = addDays(currentDay, 2);
-
-            // Check if this Sunday is within our range
-            if (differenceInCalendarDays(sunday, start) <= days) {
-                const afterDays = differenceInCalendarDays(end, sunday);
-
-                // Special case: if end IS this Sunday
-                if (afterDays === 0 && isSunday(end)) {
-                    const weekendPkg = getWeekendPackage(2, mileage, true); // 48h pricing
-
-                    if (weekendPkg) {
-                        // Count weekdays BEFORE Friday (excluding Thursday)
-                        // If Friday is at i=3, we want 2 days (Tue+Wed), not 3
-                        const beforeDays = Math.max(0, i - 1);
-                        const beforePrice = beforeDays * rate.price;
-                        const beforeKm = beforeDays * rate.km;
-
-                        const totalPrice = beforePrice + weekendPkg.price;
-                        const totalKm = mileage === 'unlimited'
-                            ? 'Illimité'
-                            : `${beforeKm + weekendPkg.km} km`;
-
-                        combinations.push({
-                            totalPrice,
-                            kmLimit: totalKm,
-                            breakdown: `${beforeDays}j sem (${beforePrice}€) + Ven-Dim 48h (${weekendPkg.price}€)`
-                        });
+            if (pkg) {
+                const res = solve(target);
+                if (res) {
+                    const price = pkg.price + res.price;
+                    const option = {
+                        price,
+                        breakdown: `Ven-Dim 48h (${pkg.price}€) + ` + res.breakdown,
+                        km: pkg.km + res.km
+                    };
+                    if (!bestOption || price < bestOption.price) {
+                        bestOption = option;
                     }
                 }
             }
+        }
 
-            // Try Fri-Mon (3 calendar days)
-            const monday = addDays(currentDay, 3);
-
-            if (differenceInCalendarDays(monday, start) <= days) {
-                const weekendPkg = getWeekendPackage(3, mileage, false);
-
-                if (weekendPkg) {
-                    const beforeDays = Math.max(0, i - 1); // Same logic: exclude Thursday
-                    const afterDays = differenceInCalendarDays(end, monday);
-
-                    const beforePrice = beforeDays * rate.price;
-                    const beforeKm = beforeDays * rate.km;
-                    const afterPrice = afterDays * rate.price;
-                    const afterKm = afterDays * rate.km;
-
-                    const totalPrice = beforePrice + weekendPkg.price + afterPrice;
-                    const totalKm = mileage === 'unlimited'
-                        ? 'Illimité'
-                        : `${beforeKm + weekendPkg.km + afterKm} km`;
-
-                    combinations.push({
-                        totalPrice,
-                        kmLimit: totalKm,
-                        breakdown: `${beforeDays}j sem (${beforePrice}€) + Ven-Lun 72h (${weekendPkg.price}€) + ${afterDays}j sem (${afterPrice}€)`
-                    });
+        // --- Option 3: Weekend Package 72h (Fri-Mon) ---
+        if (isFriday(currentDate) && remainingDays >= 3) {
+            const target = addDays(currentDate, 3);
+            const pkg = getWeekendPackage(3, mileage, false); // 72h
+            if (pkg) {
+                const res = solve(target);
+                if (res) {
+                    const price = pkg.price + res.price;
+                    const option = {
+                        price,
+                        breakdown: `Ven-Lun 72h (${pkg.price}€) + ` + res.breakdown,
+                        km: pkg.km + res.km
+                    };
+                    if (!bestOption || price < bestOption.price) {
+                        bestOption = option;
+                    }
                 }
             }
         }
+
+        memo.set(currentTimestamp, bestOption!);
+        return bestOption;
     }
 
-    // Fallback: mixed rate
-    const mixedRate = mileage === 'unlimited' ? 95 : 70;
-    combinations.push({
-        totalPrice: days * mixedRate,
-        kmLimit: mileage === 'unlimited' ? 'Illimité' : `${days * 150} km`,
-        breakdown: `${days}j tarif mixte (${mixedRate}€/j)`
-    });
+    const result = solve(start);
 
-    // Return cheapest
-    const best = combinations.reduce((min, combo) =>
-        combo.totalPrice < min.totalPrice ? combo : min
-    );
+    if (!result) {
+        return {
+            totalPrice: 0,
+            days,
+            kmLimit: '',
+            error: "Durée ou période invalide (combinaison impossible)."
+        };
+    }
 
     return {
-        totalPrice: best.totalPrice,
+        totalPrice: result.price,
         days,
-        kmLimit: best.kmLimit,
+        kmLimit: mileage === 'unlimited' ? 'Illimité' : `${result.km} km`,
         error: null
     };
 }

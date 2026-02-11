@@ -115,13 +115,14 @@ export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, av
             // If there are bookings but none are end dates, treat as fully blocked
             const hasNonEndDateBookings = dateAvailability?.existingBookings.some(b => !b.isEndDate) || false;
 
-            // Block if:
-            // 1. Fully blocked by admin/full day
-            // 2. Has bookings but is NOT an end date (i.e. start or middle day)
-            // 3. Is a turnover day (both end and start)
-            const shouldBeBlocked = isFullyBlocked || (hasNonEndDateBookings && !hasEndDateBooking) || isTurnoverDay;
+            // Block only if:
+            // 1. Fully blocked
+            // 2. Is strictly a "Middle Day" (covered entirely)
+            // 3. Is a Turnover Day (Has both start and end, so fully occupied)
+            const isStrictlyMiddleDay = dateAvailability?.existingBookings.some(b => !b.isStartDate && !b.isEndDate) || false;
+            const shouldBeBlocked = isFullyBlocked || isStrictlyMiddleDay || isTurnoverDay;
 
-            const hasPartialAvailability = !isFullyBlocked && hasEndDateBooking && !isTurnoverDay;
+            const hasPartialAvailability = !isFullyBlocked && (hasEndDateBooking || hasStartDateBooking) && !isTurnoverDay && !isStrictlyMiddleDay;
 
             // Get return and departure times for partial availability display
             let returnTimeText = '';
@@ -153,28 +154,30 @@ export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, av
                 const start = new Date(selectedStart);
                 start.setHours(0, 0, 0, 0);
 
-                // If hovering or clicking a date after start
-                if (date > start) {
-                    // Check all days between start and current date
-                    const daysDiff = (date.getTime() - start.getTime()) / (1000 * 3600 * 24);
+                // Range validation logic
+                const validateRange = (s: Date, e: Date) => {
+                    const daysDiff = (e.getTime() - s.getTime()) / (1000 * 3600 * 24);
                     for (let i = 1; i < daysDiff; i++) {
-                        const checkDate = new Date(start);
+                        const checkDate = new Date(s);
                         checkDate.setDate(checkDate.getDate() + i);
                         const checkString = formatDateLocal(checkDate);
                         const checkAvail = getAvailabilityForDate(checkString);
 
-                        // If any day in between is fully blocked (or is a start/middle day of another booking), the range is invalid
-                        if (checkAvail?.isFullyBlocked) {
-                            isRangeBlocked = true;
-                            break;
-                        }
-                        // Check if it's a middle day (has bookings but neither start nor end) - should be blocked
-                        const isMiddleDay = checkAvail?.existingBookings.some(b => !b.isStartDate && !b.isEndDate);
-                        if (isMiddleDay) {
-                            isRangeBlocked = true;
-                            break;
+                        if (checkAvail?.isFullyBlocked || (checkAvail?.existingBookings && checkAvail.existingBookings.length > 0)) {
+                            return true; // Blocked
                         }
                     }
+                    return false;
+                };
+
+                // Case 1: Forward selection (Hovering date > Selected Start)
+                if (date > start) {
+                    isRangeBlocked = validateRange(start, date);
+                }
+                // Case 2: Backward selection (Hovering date < Selected Start)
+                // The hovering date becomes the NEW Start, and the previously selected date becomes the End.
+                else if (date < start) {
+                    isRangeBlocked = validateRange(date, start);
                 }
             }
 
@@ -200,16 +203,20 @@ export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, av
                     )}
                 >
                     <span>{day}</span>
-                    {!isSelected && !isRange && (
-                        <div className="absolute bottom-0.5 left-0 right-0 flex flex-col items-center justify-center gap-0 leading-none">
-                            {returnTimeText && (
-                                <span className="text-[7px] md:text-[8px] text-orange-400 font-bold">Retour {returnTimeText}</span>
-                            )}
-                            {departTimeText && (
-                                <span className="text-[7px] md:text-[8px] text-blue-400 font-bold">Départ {departTimeText}</span>
-                            )}
-                        </div>
-                    )}
+                    <div className="absolute bottom-0.5 left-0 right-0 flex flex-col items-center justify-center gap-0 leading-none">
+                        {returnTimeText && (
+                            <span className={clsx(
+                                "text-[7px] md:text-[8px] font-bold",
+                                isSelected ? "text-orange-200" : "text-orange-400"
+                            )}>Retour {returnTimeText}</span>
+                        )}
+                        {departTimeText && (
+                            <span className={clsx(
+                                "text-[7px] md:text-[8px] font-bold",
+                                isSelected ? "text-blue-200" : "text-blue-400"
+                            )}>Départ {departTimeText}</span>
+                        )}
+                    </div>
                 </div>
             );
         });
