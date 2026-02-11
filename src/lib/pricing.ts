@@ -159,7 +159,7 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
                     km: rate.km + res.km
                 };
 
-                if (!bestOption || option.price < bestOption.price) {
+                if (bestOption === null || option.price < bestOption.price) {
                     bestOption = option;
                 }
             }
