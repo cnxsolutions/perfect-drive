@@ -44,3 +44,17 @@ export interface CreateBookingDTO {
         proofPath: string;
     };
 }
+
+export interface ExistingBooking {
+    startTime: string;
+    endTime: string;
+    isStartDate: boolean;
+    isEndDate: boolean;
+}
+
+export interface DateAvailability {
+    date: string;
+    isFullyBlocked: boolean;
+    existingBookings: ExistingBooking[];
+}
+

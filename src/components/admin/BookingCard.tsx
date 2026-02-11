@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Booking } from '@/types/booking';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Check, FileText, Calendar, Euro, User, MessageSquare, Loader2, CreditCard, Trash2 } from 'lucide-react';
+import { Check, FileText, Calendar, Euro, User, MessageSquare, Loader2, CreditCard, Trash2, Clock, Phone, Mail, MapPin, Banknote } from 'lucide-react';
 import { approveBooking, rejectBooking, getDocumentUrl, sendPaymentLink, deleteBooking } from '@/actions/admin';
 
 function DocumentLink({ path, label }: { path: string, label: string }) {
@@ -27,10 +27,10 @@ function DocumentLink({ path, label }: { path: string, label: string }) {
         <button
             onClick={handleClick}
             disabled={loading}
-            className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center gap-2 text-xs text-gray-300 transition-colors disabled:opacity-50"
+            className="flex-1 min-w-[90px] py-2 px-2 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center gap-1.5 text-[10px] md:text-xs text-gray-300 transition-colors disabled:opacity-50"
         >
             {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileText className="w-3 h-3" />}
-            {label}
+            <span className="truncate">{label}</span>
         </button>
     );
 }
@@ -91,36 +91,124 @@ export default function BookingCard({ booking }: { booking: Booking }) {
         }
     };
 
-
-
-
-
     return (
-        <div className="glass-panel p-6 rounded-xl border border-white/5 flex flex-col gap-4 relative">
-            {/* Date Range - Top */}
-            <div className="flex items-center gap-2 text-alpine">
-                <Calendar className="w-5 h-5" />
-                <span className="font-oswald text-lg uppercase tracking-wider">
-                    {format(new Date(booking.start_date), 'dd MMM', { locale: fr })} - {format(new Date(booking.end_date), 'dd MMM', { locale: fr })}
-                </span>
+        <div className="glass-panel p-4 md:p-6 rounded-xl border border-white/5 flex flex-col gap-4 relative">
+            {/* Header: Date Range & Status */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex items-center gap-2 text-alpine">
+                    <Calendar className="w-5 h-5" />
+                    <span className="font-oswald text-base md:text-lg uppercase tracking-wider">
+                        {format(new Date(booking.start_date), 'dd MMM', { locale: fr })} - {format(new Date(booking.end_date), 'dd MMM', { locale: fr })}
+                    </span>
+                </div>
+                <div className={`px-3 py-1.5 rounded-lg text-center text-xs font-bold uppercase tracking-wider self-start sm:self-auto ${booking.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' :
+                    booking.status === 'approved' ? 'bg-green-500/20 text-green-500' :
+                        booking.status === 'rejected' ? 'bg-red-500/20 text-red-500' :
+                            booking.status === 'paid' ? 'bg-emerald-500/20 text-emerald-500' :
+                                'bg-blue-500/20 text-blue-500'
+                    }`}>
+                    {booking.status}
+                </div>
             </div>
 
-            {/* Customer Name - Center */}
-            <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white">
+            {/* Customer Info */}
+            <div className="flex items-center gap-3 pb-3 border-b border-white/10">
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white flex-shrink-0">
                     <User className="w-5 h-5" />
                 </div>
-                <h3 className="text-white font-oswald text-xl uppercase tracking-wide">
-                    {booking.customer_firstname} {booking.customer_lastname}
-                </h3>
+                <div className="flex-1 min-w-0">
+                    <h3 className="text-white font-oswald text-lg md:text-xl uppercase tracking-wide truncate">
+                        {booking.customer_firstname} {booking.customer_lastname}
+                    </h3>
+                </div>
             </div>
 
-            {/* Status Badge - Bottom */}
-            <div className={`px-4 py-2 rounded-lg text-center text-sm font-bold uppercase tracking-wider ${booking.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' :
-                    booking.status === 'approved' ? 'bg-green-500/20 text-green-500' :
-                        booking.status === 'rejected' ? 'bg-red-500/20 text-red-500' : 'bg-blue-500/20 text-blue-500'
-                }`}>
-                {booking.status}
+            {/* Booking Details Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                {/* Times */}
+                <div className="flex items-start gap-2">
+                    <Clock className="w-4 h-4 text-alpine mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Horaires</p>
+                        <p className="text-white font-medium">
+                            {booking.start_time} → {booking.end_time}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Price */}
+                <div className="flex items-start gap-2">
+                    <Euro className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Prix Total</p>
+                        <p className="text-white font-bold text-lg">
+                            {booking.total_price}€
+                        </p>
+                    </div>
+                </div>
+
+                {/* Phone */}
+                <div className="flex items-start gap-2">
+                    <Phone className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Téléphone</p>
+                        <a href={`tel:${booking.customer_phone}`} className="text-white hover:text-alpine transition truncate block">
+                            {booking.customer_phone}
+                        </a>
+                    </div>
+                </div>
+
+                {/* Email */}
+                <div className="flex items-start gap-2">
+                    <Mail className="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Email</p>
+                        <a href={`mailto:${booking.customer_email}`} className="text-white hover:text-alpine transition truncate block">
+                            {booking.customer_email}
+                        </a>
+                    </div>
+                </div>
+
+                {/* Address - Full Width */}
+                {booking.customer_address && (
+                    <div className="flex items-start gap-2 sm:col-span-2">
+                        <MapPin className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[10px] text-gray-500 uppercase tracking-wider">Adresse</p>
+                            <p className="text-white break-words">
+                                {booking.customer_address}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Deposit Method */}
+                {booking.deposit_method && (
+                    <div className="flex items-start gap-2">
+                        {booking.deposit_method === 'cash' ? (
+                            <Banknote className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+                        ) : (
+                            <CreditCard className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[10px] text-gray-500 uppercase tracking-wider">Caution (700€)</p>
+                            <p className="text-white font-medium">
+                                {booking.deposit_method === 'cash' ? 'Espèces' : 'Empreinte CB'}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Mileage Type */}
+                <div className="flex items-start gap-2">
+                    <Calendar className="w-4 h-4 text-pink-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Kilométrage</p>
+                        <p className="text-white font-medium">
+                            {booking.mileage_type === 'unlimited' ? 'Illimité' : 'Standard (150km/j)'}
+                        </p>
+                    </div>
+                </div>
             </div>
 
             {/* Customer Message */}
@@ -131,14 +219,19 @@ export default function BookingCard({ booking }: { booking: Booking }) {
                 </div>
             )}
 
-            {/* Documents */}
-            <div className="flex gap-2 mt-2">
+            {/* Documents - Improved Mobile Layout */}
+            <div className="flex flex-wrap gap-2">
                 {(['id_card', 'license', 'proof'] as const).map(doc => {
                     const docKey = `document_${doc}` as keyof Booking;
+                    const labels = {
+                        id_card: 'Identité',
+                        license: 'Permis',
+                        proof: 'Justificatif'
+                    };
                     return (
                         <DocumentLink
                             key={doc}
-                            label={doc.replace('_', ' ').toUpperCase()}
+                            label={labels[doc]}
                             path={booking[docKey] as string}
                         />
                     );
@@ -146,9 +239,9 @@ export default function BookingCard({ booking }: { booking: Booking }) {
             </div>
 
             {/* Actions */}
-            <div className="mt-4 pt-4 border-t border-white/10">
+            <div className="mt-2 pt-4 border-t border-white/10">
                 {booking.status === 'pending' && (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                         <button
                             onClick={() => setShowReject(true)}
                             className="py-2 border border-red-500/50 text-red-500 rounded hover:bg-red-500 hover:text-white transition uppercase text-xs font-bold tracking-wider"
@@ -165,7 +258,7 @@ export default function BookingCard({ booking }: { booking: Booking }) {
                 )}
 
                 {booking.status === 'awaiting_payment' && (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                         <button
                             onClick={() => setShowReject(true)}
                             className="py-2 border border-red-500/50 text-red-500 rounded hover:bg-red-500 hover:text-white transition uppercase text-xs font-bold tracking-wider"
@@ -181,12 +274,12 @@ export default function BookingCard({ booking }: { booking: Booking }) {
                     </div>
                 )}
 
-                {/* Delete button for history (rejected or approved) */}
-                {(booking.status === 'rejected' || booking.status === 'approved') && (
+                {/* Delete button for history (rejected, approved, or paid) */}
+                {(booking.status === 'rejected' || booking.status === 'approved' || booking.status === 'paid') && (
                     <button
                         onClick={handleDelete}
                         disabled={loading}
-                        className="py-2 border border-red-500/50 text-red-500 rounded hover:bg-red-500 hover:text-white transition uppercase text-xs font-bold tracking-wider flex items-center justify-center gap-2"
+                        className="w-full py-2 border border-red-500/50 text-red-500 rounded hover:bg-red-500 hover:text-white transition uppercase text-xs font-bold tracking-wider flex items-center justify-center gap-2"
                     >
                         {loading ? <Loader2 className="animate-spin w-3 h-3" /> : <><Trash2 className="w-3 h-3" /> Supprimer</>}
                     </button>

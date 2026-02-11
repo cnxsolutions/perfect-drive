@@ -157,6 +157,7 @@ export default function BookingForm({ startDate, endDate, startTime, endTime }: 
                                         Limité
                                     </span>
                                     <span className="text-xs text-gray-400">150 km/jour</span>
+                                    <span className="text-[9px] text-gray-500 italic mt-1">0,50€/km si dépassé</span>
                                 </div>
                             </button>
 

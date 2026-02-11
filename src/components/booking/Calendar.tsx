@@ -1,21 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import clsx from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { DateAvailability } from '@/types/booking';
 
 interface CalendarProps {
     selectedStart: Date | null;
     selectedEnd: Date | null;
     onRangeSelect: (start: Date | null, end: Date | null) => void;
-    blockedDates?: string[]; // ISO date strings (yyyy-mm-dd)
+    availability: DateAvailability[];
 }
 
 const DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 
-export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, blockedDates }: CalendarProps) {
+export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, availability }: CalendarProps) {
     const [currentDate, setCurrentDate] = useState(new Date());
 
     const getDaysInMonth = (date: Date) => {
@@ -57,6 +58,10 @@ export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, bl
         setCurrentDate(newDate);
     };
 
+    const getAvailabilityForDate = (dateString: string): DateAvailability | undefined => {
+        return availability.find(a => a.date === dateString);
+    };
+
     const renderDays = () => {
         const daysInMonth = getDaysInMonth(currentDate);
         const firstDayParam = getFirstDayOfMonth(currentDate);
@@ -87,28 +92,56 @@ export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, bl
                 }
             }
 
-            // Check if blocked
+            // Check availability
             const dateString = date.toISOString().split('T')[0];
-            const isBlocked = blockedDates?.includes(dateString);
+            const dateAvailability = getAvailabilityForDate(dateString);
+            const isFullyBlocked = dateAvailability?.isFullyBlocked || false;
+
+            // Only show partial availability for END dates (isEndDate = true)
+            // Start and middle dates should remain fully blocked
+            const hasEndDateBooking = dateAvailability?.existingBookings.some(b => b.isEndDate) || false;
+            const hasPartialAvailability = !isFullyBlocked && hasEndDateBooking;
+
+            // If there are bookings but none are end dates, treat as fully blocked
+            const hasNonEndDateBookings = dateAvailability?.existingBookings.some(b => !b.isEndDate) || false;
+            const shouldBeBlocked = isFullyBlocked || (hasNonEndDateBookings && !hasEndDateBooking);
+
+            // Get return time for partial availability display (only for end dates)
+            let returnTimeText = '';
+            if (hasPartialAvailability && dateAvailability) {
+                const latestBooking = dateAvailability.existingBookings
+                    .filter(b => b.isEndDate)
+                    .sort((a, b) => b.endTime.localeCompare(a.endTime))[0];
+
+                if (latestBooking) {
+                    returnTimeText = latestBooking.endTime.substring(0, 5); // HH:MM format
+                }
+            }
 
             return (
                 <div
                     key={day}
-                    onClick={() => !isPast && !isBlocked && handleDayClick(day)}
+                    onClick={() => !isPast && !shouldBeBlocked && handleDayClick(day)}
                     className={twMerge(
                         clsx(
-                            "aspect-square flex items-center justify-center rounded-lg font-montserrat text-sm font-medium transition-all duration-200",
+                            "relative aspect-square flex flex-col items-center justify-center rounded-lg font-montserrat text-sm font-medium transition-all duration-200",
                             {
                                 "opacity-30 cursor-not-allowed text-gray-500": isPast,
-                                "cursor-pointer hover:bg-white/10 border border-white/5 bg-white/5": !isPast && !isBlocked,
-                                "bg-red-500/10 text-red-500 border border-red-500/20 cursor-not-allowed": isBlocked && !isPast,
+                                "cursor-pointer hover:bg-white/10 border border-white/5 bg-white/5": !isPast && !shouldBeBlocked && !hasPartialAvailability,
+                                "bg-red-500/10 text-red-500 border border-red-500/20 cursor-not-allowed": shouldBeBlocked && !isPast,
+                                "cursor-pointer hover:bg-orange-500/10 border border-orange-500/30 bg-orange-500/5": hasPartialAvailability && !isPast,
                                 "bg-alpine border-blue-500 text-white shadow-[0_0_15px_rgba(0,81,255,0.6)] font-bold": isSelected,
                                 "bg-alpine/20 text-blue-200 border-alpine/30": isRange,
                             }
                         )
                     )}
                 >
-                    {day}
+                    <span>{day}</span>
+                    {hasPartialAvailability && returnTimeText && !isSelected && !isRange && (
+                        <div className="absolute bottom-0.5 left-0 right-0 flex items-center justify-center gap-0.5">
+                            <span className="text-[7px] md:text-[8px] text-orange-400 font-bold">Retour {returnTimeText}</span>
+                        </div>
+                    )}
                 </div>
             );
         });
@@ -143,10 +176,14 @@ export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, bl
                 {renderDays()}
             </div>
 
-            <div className="flex justify-center gap-6 mt-6 text-[10px] uppercase tracking-widest font-oswald text-gray-400">
+            <div className="flex flex-wrap justify-center gap-4 lg:gap-6 mt-6 text-[9px] lg:text-[10px] uppercase tracking-widest font-oswald text-gray-400">
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded bg-white/10 border border-white/20"></div>
                     <span>Disponible</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded bg-orange-500/10 border border-orange-500/30"></div>
+                    <span className="text-orange-400">Dispo partielle</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded bg-alpine border border-blue-500 shadow-[0_0_8px_rgba(0,81,255,0.6)]"></div>

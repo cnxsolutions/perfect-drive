@@ -7,6 +7,7 @@ import { randomUUID } from 'crypto';
 import { resend, EMAIL_FROM, EMAIL_ADMIN } from '@/lib/resend';
 import { AdminNewBookingTemplate } from '@/components/emails/AdminNewBookingTemplate';
 import { CustomerReceivedTemplate } from '@/components/emails/CustomerReceivedTemplate';
+import { DateAvailability } from '@/types/booking';
 
 export async function createBookingAction(formData: FormData) {
     try {
@@ -28,6 +29,23 @@ export async function createBookingAction(formData: FormData) {
         const priceResult = calculatePrice(rawData.startDate, rawData.endDate, rawData.mileage);
         if (priceResult.error) {
             return { success: false, error: priceResult.error };
+        }
+
+        // Check for booking conflicts
+        const { data: hasConflict, error: conflictError } = await supabaseAdmin.rpc('check_booking_conflict', {
+            p_start_date: rawData.startDate.toISOString().split('T')[0],
+            p_end_date: rawData.endDate.toISOString().split('T')[0],
+            p_start_time: rawData.startTime,
+            p_end_time: rawData.endTime,
+        });
+
+        if (conflictError) {
+            console.error('Conflict Check Error:', conflictError);
+            return { success: false, error: "Erreur lors de la vérification de disponibilité." };
+        }
+
+        if (hasConflict) {
+            return { success: false, error: "Ce créneau horaire n'est pas disponible. Veuillez choisir une autre période." };
         }
 
         // Handle Files
@@ -153,6 +171,32 @@ export async function getUnavailableDates(): Promise<string[]> {
         return (data as Array<{ date: string }>)?.map((d) => d.date) || [];
     } catch (e) {
         console.error('Error fetching unavailable dates:', e);
+        return [];
+    }
+}
+
+export async function getBookingAvailability(): Promise<DateAvailability[]> {
+    try {
+        const { data, error } = await supabaseAdmin.rpc('get_booking_availability');
+
+        if (error) {
+            console.error('RPC Error:', error);
+            return [];
+        }
+
+        // Transform the data to match our TypeScript interface
+        return (data as Array<{ date: string; is_fully_blocked: boolean; existing_bookings: unknown }>)?.map((d) => ({
+            date: d.date,
+            isFullyBlocked: d.is_fully_blocked,
+            existingBookings: Array.isArray(d.existing_bookings) ? d.existing_bookings.map((b: { startTime: string; endTime: string; isStartDate: boolean; isEndDate: boolean }) => ({
+                startTime: b.startTime,
+                endTime: b.endTime,
+                isStartDate: b.isStartDate,
+                isEndDate: b.isEndDate,
+            })) : [],
+        })) || [];
+    } catch (e) {
+        console.error('Error fetching booking availability:', e);
         return [];
     }
 }
