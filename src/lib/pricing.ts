@@ -139,7 +139,7 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
             return null;
         }
 
-        let bestOption: { price: number; breakdown: string; km: number } | null = null;
+        const options: { price: number; breakdown: string; km: number }[] = [];
         const rate = getWeekdayRate(mileage);
 
         // --- Option 1: Weekday (1 day) ---
@@ -152,18 +152,11 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
         if (!isSaturday(nextDay)) {
             const res = solve(nextDay);
             if (res) {
-                const optionPrice = rate.price + res.price;
-                const option = {
-                    price: optionPrice,
+                options.push({
+                    price: rate.price + res.price,
                     breakdown: `1j (${rate.price}€) + ` + res.breakdown,
                     km: rate.km + res.km
-                };
-
-                if (!bestOption) {
-                    bestOption = option;
-                } else if (option.price < bestOption.price) {
-                    bestOption = option;
-                }
+                });
             }
         }
 
@@ -175,17 +168,11 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
             if (pkg) {
                 const res = solve(target);
                 if (res) {
-                    const price = pkg.price + res.price;
-                    const option = {
-                        price,
+                    options.push({
+                        price: pkg.price + res.price,
                         breakdown: `Ven-Dim 48h (${pkg.price}€) + ` + res.breakdown,
                         km: pkg.km + res.km
-                    };
-                    if (!bestOption) {
-                        bestOption = option;
-                    } else if (price < bestOption.price) {
-                        bestOption = option;
-                    }
+                    });
                 }
             }
         }
@@ -197,22 +184,25 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
             if (pkg) {
                 const res = solve(target);
                 if (res) {
-                    const price = pkg.price + res.price;
-                    const option = {
-                        price,
+                    options.push({
+                        price: pkg.price + res.price,
                         breakdown: `Ven-Lun 72h (${pkg.price}€) + ` + res.breakdown,
                         km: pkg.km + res.km
-                    };
-                    if (!bestOption) {
-                        bestOption = option;
-                    } else if (price < bestOption.price) {
-                        bestOption = option;
-                    }
+                    });
                 }
             }
         }
 
-        memo.set(currentTimestamp, bestOption!);
+        let bestOption: { price: number; breakdown: string; km: number } | null = null;
+        if (options.length > 0) {
+            // Find option with minimum price
+            bestOption = options.reduce((prev, curr) => prev.price < curr.price ? prev : curr);
+        }
+
+        if (bestOption) {
+            memo.set(currentTimestamp, bestOption);
+        }
+
         return bestOption;
     }
 
