@@ -13,12 +13,28 @@ function DocumentLink({ path, label }: { path: string, label: string }) {
 
     const handleClick = async (e: React.MouseEvent) => {
         e.preventDefault();
+
+        // Mobile-friendly approach: open the window immediately before the async call
+        // This links the window open event directly to the user's click gesture
+        const newWindow = typeof window !== 'undefined' ? window.open('', '_blank') : null;
+        if (newWindow) {
+            newWindow.document.title = "Chargement du document...";
+            newWindow.document.body.innerHTML = '<div style="background: #000; color: #fff; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif;">Chargement du document...</div>';
+        }
+
         setLoading(true);
         const res = await getDocumentUrl(path);
         setLoading(false);
+
         if (res.success && res.url) {
-            window.open(res.url, '_blank');
+            if (newWindow) {
+                newWindow.location.href = res.url;
+            } else {
+                // Fallback: if popup was blocked, use direct location change (on the same tab as a last resort)
+                window.location.href = res.url;
+            }
         } else {
+            if (newWindow) newWindow.close();
             alert('Erreur: Impossible d\'ouvrir le document');
         }
     };
