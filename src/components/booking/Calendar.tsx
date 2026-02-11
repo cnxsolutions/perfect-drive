@@ -189,7 +189,7 @@ export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, av
                     onClick={() => !isPast && !isDisabled && handleDayClick(day)}
                     className={twMerge(
                         clsx(
-                            "relative aspect-square flex flex-col items-center justify-center rounded-lg font-montserrat text-sm font-medium transition-all duration-200",
+                            "relative aspect-square flex flex-col items-center justify-center rounded-lg font-montserrat text-sm font-medium transition-all duration-200 group",
                             {
                                 "opacity-30 cursor-not-allowed text-gray-500": isPast || (isRangeBlocked && !isFullyBlocked), // Visual blocked state for invalid ranges
                                 "cursor-pointer hover:bg-white/10 border border-white/5 bg-white/5": !isPast && !isDisabled && !hasPartialAvailability,
@@ -203,7 +203,10 @@ export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, av
                     )}
                 >
                     <span>{day}</span>
-                    <div className="absolute bottom-0.5 left-0 right-0 flex flex-col items-center justify-center gap-0 leading-none">
+                    <div className={clsx(
+                        "absolute bottom-0.5 left-0 right-0 flex-col items-center justify-center gap-0 leading-none transition-opacity duration-200",
+                        (isSelected) ? "flex opacity-100" : "hidden group-hover:flex group-hover:opacity-100"
+                    )}>
                         {returnTimeText && (
                             <span className={clsx(
                                 "text-[7px] md:text-[8px] font-bold",
