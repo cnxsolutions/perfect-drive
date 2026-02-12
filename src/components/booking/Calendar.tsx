@@ -156,10 +156,13 @@ export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, av
 
                 // Range validation logic
                 const validateRange = (s: Date, e: Date) => {
-                    const daysDiff = (e.getTime() - s.getTime()) / (1000 * 3600 * 24);
+                    const daysDiff = Math.abs((e.getTime() - s.getTime()) / (1000 * 3600 * 24));
+                    const isForward = e > s;
+
+                    // 1. Check intermediate days
                     for (let i = 1; i < daysDiff; i++) {
                         const checkDate = new Date(s);
-                        checkDate.setDate(checkDate.getDate() + i);
+                        checkDate.setDate(checkDate.getDate() + (isForward ? i : -i));
                         const checkString = formatDateLocal(checkDate);
                         const checkAvail = getAvailabilityForDate(checkString);
 
@@ -167,6 +170,22 @@ export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, av
                             return true; // Blocked
                         }
                     }
+
+                    // 2. Check strict boundaries for partial availability
+                    // Rule A: If Start Date (s) has a "Departure" (isStartDate), we cannot START here and bridge to the next day.
+                    const startString = formatDateLocal(s);
+                    const startAvail = getAvailabilityForDate(startString);
+                    if (startAvail?.existingBookings.some(b => b.isStartDate)) {
+                        return true;
+                    }
+
+                    // Rule B: If End Date (e) has a "Return" (isEndDate), we cannot END here coming from the previous day.
+                    const endString = formatDateLocal(e);
+                    const endAvail = getAvailabilityForDate(endString);
+                    if (endAvail?.existingBookings.some(b => b.isEndDate)) {
+                        return true;
+                    }
+
                     return false;
                 };
 

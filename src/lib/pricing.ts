@@ -57,6 +57,16 @@ function getWeekendPackage(days: number, mileage: MileageType, endsOnSunday: boo
 
 // Main pricing calculation with optimization
 export function calculatePrice(start: Date, end: Date, mileage: MileageType): PriceResult {
+    // Validate inputs
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return {
+            totalPrice: 0,
+            days: 0,
+            kmLimit: '',
+            error: "Dates invalides."
+        };
+    }
+
     const days = differenceInCalendarDays(end, start);
 
     // Basic validations
@@ -69,22 +79,20 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
     const endTimestamp = end.getTime();
     const durationHours = (endTimestamp - startTimestamp) / (1000 * 60 * 60);
 
-    if (durationHours < 20) {
+    if (durationHours < 0) {
         return {
             totalPrice: 0,
             days: 0,
             kmLimit: '',
-            error: "⚠️ La durée pour une location est de 20h minimum."
+            error: "Dates invalides."
         };
     }
 
-    if (days <= 0 && durationHours < 24) {
-        // Handle same-day or <24h but >20h logic if needed, 
-        // currently covered by getWeekdayRate or handled as 1 day.
-        // If days=0 (same calendar day), differenceInCalendarDays is 0.
-        // But we might have 20h on same day? (e.g. 02:00 to 23:00).
-        // The existing logic used `if (days <= 0)`.
-    }
+    // Handle same-day or <24h but >20h logic if needed, 
+    // currently covered by getWeekdayRate or handled as 1 day.
+    // If days=0 (same calendar day), differenceInCalendarDays is 0.
+    // But we might have 20h on same day? (e.g. 02:00 to 23:00).
+    // The existing logic used `if (days <= 0)`.
 
     if (days <= 0) {
         // If it's less than 24h (and passed 20h check), we charge 1 day rate?
