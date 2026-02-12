@@ -21,13 +21,16 @@ export async function createBookingAction(formData: FormData) {
 
         // Helper to parse safely for Price Calculation (Local Midnight)
         const parseDateLocal = (dateStr: string) => {
-            const [year, month, day] = dateStr.split('-').map(Number);
+            // Handle ISO strings (e.g., 2026-02-24T16:00:00.000Z) or YYYY-MM-DD
+            const cleanDateStr = dateStr.includes('T') ? dateStr.substring(0, 10) : dateStr;
+            const [year, month, day] = cleanDateStr.split('-').map(Number);
             return new Date(year, month - 1, day);
         };
 
         // Helper to format for Email (DD/MM/YYYY)
         const formatDateEmail = (dateStr: string) => {
-            const [year, month, day] = dateStr.split('-');
+            const cleanDateStr = dateStr.includes('T') ? dateStr.substring(0, 10) : dateStr;
+            const [year, month, day] = cleanDateStr.split('-');
             return `${day}/${month}/${year}`;
         };
 
@@ -55,8 +58,8 @@ export async function createBookingAction(formData: FormData) {
 
         // Check for booking conflicts
         const { data: hasConflict, error: conflictError } = await supabaseAdmin.rpc('check_booking_conflict', {
-            p_start_date: rawData.startDateStr,
-            p_end_date: rawData.endDateStr,
+            p_start_date: rawData.startDateStr.substring(0, 10), // Ensure format matches DB
+            p_end_date: rawData.endDateStr.substring(0, 10),
             p_start_time: rawData.startTime,
             p_end_time: rawData.endTime,
         });

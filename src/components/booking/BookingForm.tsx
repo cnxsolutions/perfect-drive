@@ -70,8 +70,16 @@ export default function BookingForm({ startDate, endDate, startTime, endTime }: 
             const formData = new FormData(e.currentTarget);
 
             // Append extra data NOT in inputs if needed
-            formData.set('startDate', startDate.toISOString());
-            formData.set('endDate', endDate.toISOString());
+            // Use local date format YYYY-MM-DD to avoid timezone shifts (toISOString uses UTC)
+            const formatDate = (d: Date) => {
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            formData.set('startDate', formatDate(startDate));
+            formData.set('endDate', formatDate(endDate));
             formData.set('startTime', startTime);
             formData.set('endTime', endTime);
             formData.set('mileage', mileage);
