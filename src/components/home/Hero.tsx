@@ -6,10 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const images = [
-    '/IMG_9739.jpeg',
-    '/IMG_9740.jpeg',
-    '/IMG_9741.jpeg',
-    '/IMG_9742.jpeg',
+    '/voiture1.jpeg',
+    '/voiture2.JPG',
+    '/voiture3.JPG',
+    '/voiture4.JPG',
 ];
 
 export default function Hero() {
@@ -42,11 +42,11 @@ export default function Hero() {
                         <span className="text-blue-400 text-[10px] lg:text-xs font-bold tracking-widest font-oswald">FLOTTE 2026</span>
                     </div>
                     <h2 className="font-oswald text-4xl sm:text-5xl md:text-7xl font-bold uppercase leading-[0.9] mb-4 lg:mb-6 text-white text-center lg:text-left">
-                        Clio V <br />
+                        Clio V<br />
                         <span className="text-alpine">Esprit Alpine</span>
                     </h2>
                     <p className="font-montserrat text-gray-400 text-sm sm:text-base lg:text-lg max-w-md mx-auto lg:mx-0 leading-relaxed mb-8 text-center lg:text-left lg:border-l-2 lg:border-alpine lg:pl-4">
-                        Finition Black Edition. Hybride E-Tech 145ch. <br />
+                        Finition Bleu Fusion. Hybride E-Tech 145ch. <br />
                         L&apos;élégance radicale.
                     </p>
                 </motion.div>
