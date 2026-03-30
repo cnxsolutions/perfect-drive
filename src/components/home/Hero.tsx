@@ -6,10 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const images = [
-    '/voiture1.jpeg',
-    '/voiture2.JPG',
-    '/voiture3.JPG',
-    '/voiture4.JPG',
+    '/IMG_9739.jpeg',
+    '/IMG_9740.jpeg',
+    '/IMG_9741.jpeg',
+    '/IMG_9742.jpeg',
 ];
 
 export default function Hero() {
@@ -81,7 +81,7 @@ export default function Hero() {
                         {/* Overlays */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
                         <div className="absolute bottom-4 left-4 lg:bottom-6 lg:left-6 z-20 pointer-events-none">
-                            <p className="font-oswald text-white text-lg lg:text-xl uppercase tracking-widest drop-shadow-md">Noir Étoilé</p>
+                            <p className="font-oswald text-white text-lg lg:text-xl uppercase tracking-widest drop-shadow-md">Bleu Fusion</p>
                             <p className="text-alpine text-[10px] lg:text-xs font-bold uppercase tracking-wider mt-1">Perfect Drive Edition</p>
                         </div>
 
