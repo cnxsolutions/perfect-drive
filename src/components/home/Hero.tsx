@@ -6,10 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const images = [
-    '/voiture1.jpeg',
-    '/voiture2.JPG',
-    '/voiture3.JPG',
-    '/voiture4.JPG',
+    '/IMG_9739.jpeg',
+    '/IMG_9740.jpeg',
+    '/IMG_9741.jpeg',
+    '/IMG_9742.jpeg',
 ];
 
 export default function Hero() {
