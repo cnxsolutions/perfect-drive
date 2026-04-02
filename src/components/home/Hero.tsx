@@ -4,26 +4,39 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Vehicle } from '@/types/vehicle';
 
-const images = [
+const DEFAULT_IMAGES = [
     '/IMG_9739.jpeg',
     '/IMG_9740.jpeg',
     '/IMG_9741.jpeg',
     '/IMG_9742.jpeg',
 ];
 
-export default function Hero() {
+interface HeroProps {
+    vehicle?: Vehicle;
+}
+
+export default function Hero({ vehicle }: HeroProps) {
     const [currentSlide, setCurrentSlide] = useState(0);
+
+    const images = vehicle?.images && vehicle.images.length > 0 
+        ? vehicle.images 
+        : DEFAULT_IMAGES;
 
     useEffect(() => {
         const timer = setInterval(() => {
             setCurrentSlide((prev) => (prev + 1) % images.length);
         }, 5000);
         return () => clearInterval(timer);
-    }, []);
+    }, [images.length]);
 
     const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % images.length);
     const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + images.length) % images.length);
+
+    const vehicleName = vehicle?.name || "Clio V";
+    const vehicleTrim = vehicle?.trim || "Esprit Alpine";
+    const vehicleDescription = vehicle?.description || "Finition Bleu Fusion. Hybride E-Tech 145ch. L'élégance radicale.";
 
     return (
         <section id="showroom" className="relative pt-32 pb-10 px-4 md:px-6 overflow-hidden min-h-[80vh] flex items-center">
@@ -42,12 +55,11 @@ export default function Hero() {
                         <span className="text-blue-400 text-[10px] lg:text-xs font-bold tracking-widest font-oswald">FLOTTE 2026</span>
                     </div>
                     <h2 className="font-oswald text-4xl sm:text-5xl md:text-7xl font-bold uppercase leading-[0.9] mb-4 lg:mb-6 text-white text-center lg:text-left">
-                        Clio V<br />
-                        <span className="text-alpine">Esprit Alpine</span>
+                        {vehicleName.split(' ')[0]} <span className="text-white">{vehicleName.split(' ').slice(1).join(' ')}</span><br />
+                        <span className="text-alpine">{vehicleTrim}</span>
                     </h2>
-                    <p className="font-montserrat text-gray-400 text-sm sm:text-base lg:text-lg max-w-md mx-auto lg:mx-0 leading-relaxed mb-8 text-center lg:text-left lg:border-l-2 lg:border-alpine lg:pl-4">
-                        Finition Bleu Fusion. Hybride E-Tech 145ch. <br />
-                        L&apos;élégance radicale.
+                    <p className="font-montserrat text-gray-400 text-sm sm:text-base lg:text-lg max-w-md mx-auto lg:mx-0 leading-relaxed mb-8 text-center lg:text-left lg:border-l-2 lg:border-alpine lg:pl-4 whitespace-pre-line">
+                        {vehicleDescription}
                     </p>
                 </motion.div>
 
@@ -70,7 +82,7 @@ export default function Hero() {
                             >
                                 <Image
                                     src={images[currentSlide]}
-                                    alt={`Car view ${currentSlide + 1}`}
+                                    alt={`${vehicleName} view ${currentSlide + 1}`}
                                     fill
                                     className="object-cover"
                                     priority
@@ -81,7 +93,7 @@ export default function Hero() {
                         {/* Overlays */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
                         <div className="absolute bottom-4 left-4 lg:bottom-6 lg:left-6 z-20 pointer-events-none">
-                            <p className="font-oswald text-white text-lg lg:text-xl uppercase tracking-widest drop-shadow-md">Bleu Fusion</p>
+                            <p className="font-oswald text-white text-lg lg:text-xl uppercase tracking-widest drop-shadow-md">{vehicleTrim}</p>
                             <p className="text-alpine text-[10px] lg:text-xs font-bold uppercase tracking-wider mt-1">Perfect Drive Edition</p>
                         </div>
 

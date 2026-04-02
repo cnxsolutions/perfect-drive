@@ -352,3 +352,185 @@ export async function updateAdminBooking(bookingId: string, formData: FormData) 
         return { success: false, error: "Une erreur inattendue est survenue." };
     }
 }
+// ============================================
+// VEHICLE MANAGEMENT ACTIONS
+// ============================================
+
+async function uploadVehicleImages(formData: FormData): Promise<string[]> {
+    const images = formData.getAll('images') as File[];
+    const uploadedUrls: string[] = [];
+    const { randomUUID } = await import('crypto');
+
+    for (const image of images) {
+        if (image && image.size > 0) {
+            const fileExt = image.name.split('.').pop();
+            const fileName = `vehicle_${randomUUID()}.${fileExt}`;
+            const arrayBuffer = await image.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            const { data, error } = await supabaseAdmin
+                .storage
+                .from('vehicle-images')
+                .upload(fileName, buffer, {
+                    contentType: image.type,
+                    upsert: false
+                });
+
+            if (error) {
+                console.error('Upload Error:', error);
+                continue;
+            }
+
+            const { data: { publicUrl } } = supabaseAdmin
+                .storage
+                .from('vehicle-images')
+                .getPublicUrl(data.path);
+
+            uploadedUrls.push(publicUrl);
+        }
+    }
+
+    return uploadedUrls;
+}
+
+export async function createVehicle(formData: FormData) {
+    try {
+        const uploadedUrls = await uploadVehicleImages(formData);
+        
+        const data = {
+            name: formData.get('name') as string,
+            trim: formData.get('trim') as string,
+            brand: formData.get('brand') as string,
+            model: formData.get('model') as string,
+            registration_number: formData.get('registration_number') as string,
+            daily_rate: parseFloat(formData.get('daily_rate') as string) || 0,
+            description: formData.get('description') as string,
+            is_available: formData.get('is_available') === 'true',
+            image_url: uploadedUrls[0] || '',
+            images: uploadedUrls
+        };
+
+        const { data: vehicle, error } = await supabaseAdmin
+            .from('vehicles')
+            .insert([data])
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        revalidatePath('/admin');
+        revalidatePath('/');
+        return { success: true, vehicle };
+    } catch (error) {
+        console.error('Error creating vehicle:', error);
+        return { success: false, error: 'Échec de la création du véhicule' };
+    }
+}
+
+export async function getVehicles() {
+    try {
+        const { data: vehicles, error } = await supabaseAdmin
+            .from('vehicles')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        return { success: true, vehicles };
+    } catch (error) {
+        console.error('Error fetching vehicles:', error);
+        return { success: false, error: 'Échec du chargement des véhicules' };
+    }
+}
+
+export async function getVehicleById(id: string) {
+    try {
+        const { data: vehicle, error } = await supabaseAdmin
+            .from('vehicles')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+
+        return { success: true, vehicle };
+    } catch (error) {
+        console.error('Error fetching vehicle:', error);
+        return { success: false, error: 'Véhicule non trouvé' };
+    }
+}
+
+export async function updateVehicle(id: string, formData: FormData) {
+    try {
+        const existingImages = JSON.parse(formData.get('existingImages') as string || '[]');
+        const newUploadedUrls = await uploadVehicleImages(formData);
+        
+        const allImages = [...existingImages, ...newUploadedUrls];
+
+        const data = {
+            name: formData.get('name') as string,
+            trim: formData.get('trim') as string,
+            brand: formData.get('brand') as string,
+            model: formData.get('model') as string,
+            registration_number: formData.get('registration_number') as string,
+            daily_rate: parseFloat(formData.get('daily_rate') as string) || 0,
+            description: formData.get('description') as string,
+            is_available: formData.get('is_available') === 'true',
+            image_url: allImages[0] || '',
+            images: allImages,
+            updated_at: new Date().toISOString()
+        };
+
+        const { data: vehicle, error } = await supabaseAdmin
+            .from('vehicles')
+            .update(data)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        revalidatePath('/admin');
+        revalidatePath('/');
+        return { success: true, vehicle };
+    } catch (error) {
+        console.error('Error updating vehicle:', error);
+        return { success: false, error: 'Échec de la modification du véhicule' };
+    }
+}
+
+export async function deleteVehicle(id: string) {
+    try {
+        const { error } = await supabaseAdmin
+            .from('vehicles')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+
+        revalidatePath('/admin');
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting vehicle:', error);
+        return { success: false, error: 'Échec de la suppression du véhicule' };
+    }
+}
+
+export async function toggleVehicleAvailability(id: string, isAvailable: boolean) {
+    try {
+        const { data: vehicle, error } = await supabaseAdmin
+            .from('vehicles')
+            .update({ is_available: isAvailable })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        revalidatePath('/admin');
+        return { success: true, vehicle };
+    } catch (error) {
+        console.error('Error updating vehicle availability:', error);
+        return { success: false, error: 'Échec de la mise à jour' };
+    }
+}
