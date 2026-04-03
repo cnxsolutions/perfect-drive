@@ -15,6 +15,7 @@ interface VehicleFormProps {
 export default function VehicleForm({ initialData, onSubmit, loading, buttonText }: VehicleFormProps) {
     const [name, setName] = useState(initialData?.name || '');
     const [trim, setTrim] = useState(initialData?.trim || '');
+    const [color, setColor] = useState(initialData?.color || '');
     const [description, setDescription] = useState(initialData?.description || '');
     
     // Images state
@@ -28,7 +29,12 @@ export default function VehicleForm({ initialData, onSubmit, loading, buttonText
     const [brand] = useState(initialData?.brand || 'Default');
     const [model] = useState(initialData?.model || 'Default');
     const [regNum] = useState(initialData?.registration_number || `TEMP-${Math.random().toString(36).substring(7).toUpperCase()}`);
-    const [dailyRate] = useState(initialData?.daily_rate?.toString() || '100');
+    
+    // Pricing & Stock
+    const [dailyRate, setDailyRate] = useState(initialData?.daily_rate?.toString() || '100');
+    const [unlimitedRate, setUnlimitedRate] = useState(initialData?.unlimited_rate?.toString() || '130');
+    const [weekendRate, setWeekendRate] = useState(initialData?.weekend_rate?.toString() || '150');
+    const [weekendUnlimitedRate, setWeekendUnlimitedRate] = useState(initialData?.weekend_unlimited_rate?.toString() || '200');
 
     useEffect(() => {
         // Create previews for new files
@@ -62,11 +68,15 @@ export default function VehicleForm({ initialData, onSubmit, loading, buttonText
         const formData = new FormData();
         formData.append('name', name);
         formData.append('trim', trim);
+        formData.append('color', color);
         formData.append('description', description);
         formData.append('brand', brand);
         formData.append('model', model);
         formData.append('registration_number', regNum);
         formData.append('daily_rate', dailyRate);
+        formData.append('unlimited_rate', unlimitedRate);
+        formData.append('weekend_rate', weekendRate);
+        formData.append('weekend_unlimited_rate', weekendUnlimitedRate);
         formData.append('is_available', 'true');
         
         // Send list of existing images to keep
@@ -109,15 +119,81 @@ export default function VehicleForm({ initialData, onSubmit, loading, buttonText
                 </div>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Vehicle Color */}
+                <div>
+                    <Label>Couleur</Label>
+                    <input
+                        type="text" placeholder="ex: Bleu Fusion"
+                        value={color} onChange={(e) => setColor(e.target.value)}
+                        className="w-full p-4 glass-input rounded-2xl text-lg font-bold text-white tracking-tight focus:ring-2 focus:ring-alpine/50"
+                    />
+                </div>
+                
+                {/* Registration Number (Hidden previously, but let's just make it hidden div to keep grid balance or just leave empty div) */}
+                <div />
+            </div>
+
             {/* Description */}
             <div>
                 <Label>Description (Détails Hero)</Label>
                 <textarea
                     rows={4}
                     value={description} onChange={(e) => setDescription(e.target.value)}
-                    className="w-full p-4 glass-input rounded-2xl text-sm resize-none leading-relaxed"
+                    className="w-full p-4 glass-input rounded-2xl text-sm resize-none leading-relaxed focus:ring-2 focus:ring-alpine/50"
                     placeholder="ex: Finition Bleu Fusion. Hybride E-Tech 145ch. L'élégance radicale."
                 />
+            </div>
+
+            {/* Pricing Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-white/5 rounded-3xl border border-white/10">
+                <div>
+                    <Label>Prix Semaine (Standard)</Label>
+                    <div className="relative">
+                        <input
+                            type="number" step="0.01" required
+                            value={dailyRate} onChange={(e) => setDailyRate(e.target.value)}
+                            className="w-full p-4 glass-input rounded-2xl text-lg font-bold text-blue-400 focus:ring-2 focus:ring-blue-500/50 pr-12"
+                        />
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-oswald text-xs">€/J</div>
+                    </div>
+                </div>
+
+                <div>
+                    <Label>Prix Semaine (Illimité)</Label>
+                    <div className="relative">
+                        <input
+                            type="number" step="0.01" required
+                            value={unlimitedRate} onChange={(e) => setUnlimitedRate(e.target.value)}
+                            className="w-full p-4 glass-input rounded-2xl text-lg font-bold text-alpine focus:ring-2 focus:ring-alpine/50 pr-12"
+                        />
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-oswald text-xs">€/J</div>
+                    </div>
+                </div>
+
+                <div>
+                    <Label>Prix Week-end (48h Standard)</Label>
+                    <div className="relative">
+                        <input
+                            type="number" step="0.01" required
+                            value={weekendRate} onChange={(e) => setWeekendRate(e.target.value)}
+                            className="w-full p-4 glass-input rounded-2xl text-lg font-bold text-orange-400 focus:ring-2 focus:ring-orange-500/50 pr-12"
+                        />
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-oswald text-xs">€/TOT</div>
+                    </div>
+                </div>
+
+                <div>
+                    <Label>Prix Week-end (48h Illimité)</Label>
+                    <div className="relative">
+                        <input
+                            type="number" step="0.01" required
+                            value={weekendUnlimitedRate} onChange={(e) => setWeekendUnlimitedRate(e.target.value)}
+                            className="w-full p-4 glass-input rounded-2xl text-lg font-bold text-alpine focus:ring-2 focus:ring-alpine/50 pr-12"
+                        />
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-oswald text-xs">€/TOT</div>
+                    </div>
+                </div>
             </div>
 
             {/* Image Upload Zone */}

@@ -13,10 +13,11 @@ export async function createBookingAction(formData: FormData) {
     try {
         const startDateStr = formData.get('startDate') as string;
         const endDateStr = formData.get('endDate') as string;
+        const vehicleId = formData.get('vehicle_id') as string;
 
         // Validations basic
-        if (!startDateStr || !endDateStr) {
-            return { success: false, error: "Dates manquantes." };
+        if (!startDateStr || !endDateStr || !vehicleId) {
+            return { success: false, error: "Informations manquantes." };
         }
 
         // Helper to parse safely for Price Calculation (Local Midnight)
@@ -50,14 +51,26 @@ export async function createBookingAction(formData: FormData) {
             message: formData.get('message') as string,
         };
 
+        // Fetch Vehicle for Price Calculation
+        const { data: vehicle, error: vehicleError } = await supabaseAdmin
+            .from('vehicles')
+            .select('*')
+            .eq('id', vehicleId)
+            .single();
+
+        if (vehicleError || !vehicle) {
+            return { success: false, error: "Véhicule non trouvé." };
+        }
+
         // Calculate Price Server-Side
-        const priceResult = calculatePrice(rawData.startDate, rawData.endDate, rawData.mileage);
+        const priceResult = calculatePrice(rawData.startDate, rawData.endDate, rawData.mileage, vehicle);
         if (priceResult.error) {
             return { success: false, error: priceResult.error };
         }
 
         // Check for booking conflicts
         const { data: hasConflict, error: conflictError } = await supabaseAdmin.rpc('check_booking_conflict', {
+            p_vehicle_id: vehicleId,
             p_start_date: rawData.startDateStr.substring(0, 10), // Ensure format matches DB
             p_end_date: rawData.endDateStr.substring(0, 10),
             p_start_time: rawData.startTime,
@@ -127,6 +140,7 @@ export async function createBookingAction(formData: FormData) {
                 document_id_card: filePaths.idCard,
                 document_license: filePaths.license,
                 document_proof: filePaths.proof,
+                vehicle_id: vehicleId
             });
 
         if (insertError) {
@@ -157,6 +171,9 @@ export async function createBookingAction(formData: FormData) {
                     hasLicenseDocument: !!filePaths.license,
                     hasProofDocument: !!filePaths.proof,
                     customerMessage: rawData.message,
+                    vehicleBrand: vehicle.brand,
+                    vehicleModel: vehicle.model,
+                    vehicleTrim: vehicle.trim,
                 }) as React.ReactElement,
             });
 
@@ -167,6 +184,8 @@ export async function createBookingAction(formData: FormData) {
                 subject: 'Votre demande de location - Perfect Drive',
                 react: CustomerReceivedTemplate({
                     firstname: rawData.firstname,
+                    vehicleBrand: vehicle.brand,
+                    vehicleModel: vehicle.model,
                 }) as React.ReactElement,
             });
         } catch (emailError) {
@@ -183,9 +202,10 @@ export async function createBookingAction(formData: FormData) {
     }
 }
 
-export async function getUnavailableDates(): Promise<string[]> {
+export async function getUnavailableDates(vehicleId?: string): Promise<string[]> {
+    if (!vehicleId) return [];
     try {
-        const { data, error } = await supabaseAdmin.rpc('get_unavailable_dates');
+        const { data, error } = await supabaseAdmin.rpc('get_unavailable_dates', { p_vehicle_id: vehicleId });
 
         if (error) {
             console.error('RPC Error:', error);
@@ -200,9 +220,10 @@ export async function getUnavailableDates(): Promise<string[]> {
     }
 }
 
-export async function getBookingAvailability(): Promise<DateAvailability[]> {
+export async function getBookingAvailability(vehicleId?: string): Promise<DateAvailability[]> {
+    if (!vehicleId) return [];
     try {
-        const { data, error } = await supabaseAdmin.rpc('get_booking_availability');
+        const { data, error } = await supabaseAdmin.rpc('get_booking_availability', { p_vehicle_id: vehicleId });
 
         if (error) {
             console.error('RPC Error:', error);

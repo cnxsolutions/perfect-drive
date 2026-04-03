@@ -6,6 +6,8 @@ import { resend, EMAIL_FROM } from '@/lib/resend';
 import { CustomerPaymentLinkTemplate } from '@/components/emails/CustomerPaymentLinkTemplate';
 import { CustomerRejectedTemplate } from '@/components/emails/CustomerRejectedTemplate';
 import { CustomerConfirmedTemplate } from '@/components/emails/CustomerConfirmedTemplate';
+import { CustomerReceivedTemplate } from '@/components/emails/CustomerReceivedTemplate';
+import { AdminNewBookingTemplate } from '@/components/emails/AdminNewBookingTemplate';
 import React from 'react';
 
 export async function approveBooking(bookingId: string) {
@@ -17,7 +19,7 @@ export async function approveBooking(bookingId: string) {
                 status: 'approved',
             })
             .eq('id', bookingId)
-            .select()
+            .select('*, vehicles(*)')
             .single();
 
         if (error) throw error;
@@ -34,6 +36,8 @@ export async function approveBooking(bookingId: string) {
                         startDate: new Date(booking.start_date).toLocaleDateString('fr-FR'),
                         endDate: new Date(booking.end_date).toLocaleDateString('fr-FR'),
                         totalPrice: booking.total_price,
+                        vehicleBrand: (booking.vehicles as any)?.name || ((booking.vehicles as any)?.brand?.replace('Default', '') || 'Véhicule').trim(),
+                        vehicleModel: ((booking.vehicles as any)?.model?.replace('Default', '') || '').trim(),
                     }) as React.ReactElement,
                 });
             } catch (emailError) {
@@ -58,7 +62,7 @@ export async function sendPaymentLink(bookingId: string, paymentLink: string) {
                 payment_link: paymentLink
             })
             .eq('id', bookingId)
-            .select()
+            .select('*, vehicles(*)')
             .single();
 
         if (error) throw error;
@@ -73,6 +77,8 @@ export async function sendPaymentLink(bookingId: string, paymentLink: string) {
                     react: CustomerPaymentLinkTemplate({
                         firstname: booking.customer_firstname,
                         paymentLink: paymentLink,
+                        vehicleBrand: (booking.vehicles as any)?.name || ((booking.vehicles as any)?.brand?.replace('Default', '') || 'Véhicule').trim(),
+                        vehicleModel: ((booking.vehicles as any)?.model?.replace('Default', '') || '').trim(),
                     }) as React.ReactElement,
                 });
             } catch (emailError) {
@@ -96,7 +102,7 @@ export async function rejectBooking(bookingId: string, reason: string) {
                 rejection_reason: reason
             })
             .eq('id', bookingId)
-            .select()
+            .select('*, vehicles(*)')
             .single();
 
         if (error) throw error;
@@ -111,6 +117,8 @@ export async function rejectBooking(bookingId: string, reason: string) {
                     react: CustomerRejectedTemplate({
                         firstname: booking.customer_firstname,
                         reason: reason,
+                        vehicleBrand: (booking.vehicles as any)?.name || ((booking.vehicles as any)?.brand?.replace('Default', '') || 'Véhicule').trim(),
+                        vehicleModel: ((booking.vehicles as any)?.model?.replace('Default', '') || '').trim(),
                     }) as React.ReactElement,
                 });
             } catch (emailError) {
@@ -177,6 +185,7 @@ export async function createAdminBooking(formData: FormData) {
             status: formData.get('status') as string || 'approved',
             depositMethod: (formData.get('depositMethod') as string) || 'imprint',
             totalPrice: parseFloat(formData.get('totalPrice') as string) || 0,
+            vehicleId: formData.get('vehicle_id') as string,
         };
 
         // Handle Optional Files
@@ -236,11 +245,39 @@ export async function createAdminBooking(formData: FormData) {
                 document_id_card: filePaths.idCard,
                 document_license: filePaths.license,
                 document_proof: filePaths.proof,
+                vehicle_id: rawData.vehicleId,
             });
 
         if (insertError) {
             console.error('DB Insert Error:', insertError);
             return { success: false, error: "Erreur lors de la création." };
+        }
+
+        // 3. Send Confirmation Email to Customer (if email provided)
+        if (rawData.email) {
+            try {
+                // Fetch vehicle info for email
+                const { data: vehicle } = await supabaseAdmin
+                    .from('vehicles')
+                    .select('*')
+                    .eq('id', rawData.vehicleId)
+                    .single();
+
+                if (vehicle) {
+                    await resend.emails.send({
+                        from: EMAIL_FROM,
+                        to: rawData.email,
+                        subject: 'Votre réservation - Perfect Drive',
+                        react: CustomerReceivedTemplate({
+                            firstname: rawData.firstname,
+                            vehicleBrand: vehicle.name || (vehicle.brand?.replace('Default', '') || 'Véhicule').trim(),
+                            vehicleModel: (vehicle.model?.replace('Default', '') || '').trim(),
+                        }) as React.ReactElement,
+                    });
+                }
+            } catch (emailError) {
+                console.error('Admin manual booking email error:', emailError);
+            }
         }
 
         revalidatePath('/admin');
@@ -277,6 +314,7 @@ export async function updateAdminBooking(bookingId: string, formData: FormData) 
             status: formData.get('status') as string || 'approved',
             depositMethod: (formData.get('depositMethod') as string) || 'imprint',
             totalPrice: parseFloat(formData.get('totalPrice') as string) || 0,
+            vehicleId: formData.get('vehicle_id') as string,
         };
 
         // Handle Optional Files (Only if new files are uploaded)
@@ -327,6 +365,7 @@ export async function updateAdminBooking(bookingId: string, formData: FormData) 
             customer_phone: rawData.phone,
             customer_address: rawData.address,
             deposit_method: rawData.depositMethod,
+            vehicle_id: rawData.vehicleId,
         };
 
         // Only update document paths if new files were uploaded
@@ -400,10 +439,16 @@ export async function createVehicle(formData: FormData) {
         const data = {
             name: formData.get('name') as string,
             trim: formData.get('trim') as string,
+            color: formData.get('color') as string,
             brand: formData.get('brand') as string,
             model: formData.get('model') as string,
             registration_number: formData.get('registration_number') as string,
             daily_rate: parseFloat(formData.get('daily_rate') as string) || 0,
+            weekend_rate: parseFloat(formData.get('weekend_rate') as string) || 0,
+            unlimited_rate: parseFloat(formData.get('unlimited_rate') as string) || 0,
+            weekend_unlimited_rate: parseFloat(formData.get('weekend_unlimited_rate') as string) || 0,
+            weekend_72h_rate: formData.get('weekend_72h_rate') ? parseFloat(formData.get('weekend_72h_rate') as string) : null,
+            weekend_72h_unlimited_rate: formData.get('weekend_72h_unlimited_rate') ? parseFloat(formData.get('weekend_72h_unlimited_rate') as string) : null,
             description: formData.get('description') as string,
             is_available: formData.get('is_available') === 'true',
             image_url: uploadedUrls[0] || '',
@@ -431,12 +476,58 @@ export async function getVehicles() {
     try {
         const { data: vehicles, error } = await supabaseAdmin
             .from('vehicles')
-            .select('*')
+            .select(`
+                *,
+                bookings (
+                    start_date,
+                    end_date,
+                    status
+                )
+            `)
             .order('created_at', { ascending: false });
 
         if (error) throw error;
 
-        return { success: true, vehicles };
+        // Calcul du statut en temps réel pour l'administration
+        const today = new Date().toISOString().substring(0, 10);
+        
+        const enrichedVehicles = vehicles?.map((vehicle: any) => {
+            const activeBookings = vehicle.bookings || [];
+            
+            let rentalState = 'available';
+
+            // Check if there is an approved/paid rental covering today
+            for (const b of activeBookings) {
+                if (b.status !== 'approved' && b.status !== 'paid') continue;
+                
+                if (b.start_date <= today && b.end_date >= today) {
+                    if (b.start_date === today && b.end_date === today) {
+                        rentalState = 'departure_and_return_today';
+                        break;
+                    } else if (b.start_date === today) {
+                        rentalState = 'departure_today';
+                        break;
+                    } else if (b.end_date === today) {
+                        rentalState = 'return_today';
+                        break;
+                    } else {
+                        rentalState = 'rented';
+                        break;
+                    }
+                }
+            }
+
+            // Supprimer le tableau lourd des réservations pour la réponse
+            delete vehicle.bookings;
+
+            return {
+                ...vehicle,
+                is_currently_rented: rentalState !== 'available',
+                current_rental_state: rentalState
+            };
+        });
+
+        return { success: true, vehicles: enrichedVehicles };
     } catch (error) {
         console.error('Error fetching vehicles:', error);
         return { success: false, error: 'Échec du chargement des véhicules' };
@@ -474,6 +565,11 @@ export async function updateVehicle(id: string, formData: FormData) {
             model: formData.get('model') as string,
             registration_number: formData.get('registration_number') as string,
             daily_rate: parseFloat(formData.get('daily_rate') as string) || 0,
+            weekend_rate: parseFloat(formData.get('weekend_rate') as string) || 0,
+            unlimited_rate: parseFloat(formData.get('unlimited_rate') as string) || 0,
+            weekend_unlimited_rate: parseFloat(formData.get('weekend_unlimited_rate') as string) || 0,
+            weekend_72h_rate: formData.get('weekend_72h_rate') ? parseFloat(formData.get('weekend_72h_rate') as string) : null,
+            weekend_72h_unlimited_rate: formData.get('weekend_72h_unlimited_rate') ? parseFloat(formData.get('weekend_72h_unlimited_rate') as string) : null,
             description: formData.get('description') as string,
             is_available: formData.get('is_available') === 'true',
             image_url: allImages[0] || '',

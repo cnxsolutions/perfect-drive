@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import VehiclesPageClient from './VehiclesPageClient';
 import AdminHeader from '@/components/admin/AdminHeader';
+import { getVehicles } from '@/actions/admin';
+
+export const dynamic = 'force-dynamic';
 
 export default async function VehiclesPage() {
     const supabase = await createClient();
@@ -9,11 +12,8 @@ export default async function VehiclesPage() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) redirect('/admin/login');
 
-    // Fetch vehicles
-    const { data: vehicles } = await supabase
-        .from('vehicles')
-        .select('*')
-        .order('created_at', { ascending: false });
+    // Fetch vehicles with real-time rental status enrichment
+    const { vehicles } = await getVehicles();
 
     return (
         <div className="min-h-screen bg-darkbg text-white font-montserrat p-6 md:p-10">

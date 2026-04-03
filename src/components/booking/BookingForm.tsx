@@ -5,15 +5,17 @@ import { Check, Car, Home, CreditCard, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 import { calculatePrice, MileageType } from '@/lib/pricing';
 import { createBookingAction } from '@/actions/booking';
+import { Vehicle } from '@/types/vehicle';
 
 interface BookingFormProps {
     startDate: Date | null;
     endDate: Date | null;
     startTime: string;
     endTime: string;
+    vehicle?: Vehicle;
 }
 
-export default function BookingForm({ startDate, endDate, startTime, endTime }: BookingFormProps) {
+export default function BookingForm({ startDate, endDate, startTime, endTime, vehicle }: BookingFormProps) {
     const [mileage, setMileage] = useState<MileageType>('standard');
     const [price, setPrice] = useState<number | string>(0);
     const [kmLimit, setKmLimit] = useState('');
@@ -21,6 +23,11 @@ export default function BookingForm({ startDate, endDate, startTime, endTime }: 
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
+
+    // Initial rates based on vehicle
+    const baseDaily = vehicle?.daily_rate || 60;
+    const baseUnlimited = vehicle?.unlimited_rate || (baseDaily + 30);
+    const kmStandard = vehicle?.mileage_standard_limit || 150;
 
     // Files
     const [files, setFiles] = useState<{ id: File | null; license: File | null; proof: File | null }>({
@@ -30,19 +37,19 @@ export default function BookingForm({ startDate, endDate, startTime, endTime }: 
     // Calculate Price
     useEffect(() => {
         if (!startDate || !endDate) {
-            setPrice(mileage === 'unlimited' ? 90 : 60);
-            setKmLimit(mileage === 'unlimited' ? "Kilométrage Illimité" : "Inclus : 150 km");
+            setPrice(mileage === 'unlimited' ? baseUnlimited : baseDaily);
+            setKmLimit(mileage === 'unlimited' ? "Kilométrage Illimité" : `Inclus : ${kmStandard} km`);
             setAlertMessage(null);
             return;
         }
 
-        const { totalPrice, kmLimit: limit, error } = calculatePrice(startDate, endDate, mileage);
+        const { totalPrice, kmLimit: limit, error } = calculatePrice(startDate, endDate, mileage, vehicle);
 
         setPrice(error ? "--" : totalPrice);
         setKmLimit(error ? "Indisponible" : limit);
         setAlertMessage(error);
 
-    }, [startDate, endDate, mileage]);
+    }, [startDate, endDate, mileage, vehicle, baseDaily, baseUnlimited, kmStandard]);
 
     const handleFileChange = (type: 'id' | 'license' | 'proof', e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -57,6 +64,10 @@ export default function BookingForm({ startDate, endDate, startTime, endTime }: 
 
         if (price === "--" || alertMessage) return;
         if (!startDate || !endDate) return;
+        if (!vehicle?.id) {
+            setServerError("Erreur : Aucun véhicule sélectionné.");
+            return;
+        }
 
         // Check files
         if (!files.id || !files.license || !files.proof) {
@@ -83,6 +94,7 @@ export default function BookingForm({ startDate, endDate, startTime, endTime }: 
             formData.set('startTime', startTime);
             formData.set('endTime', endTime);
             formData.set('mileage', mileage);
+            formData.set('vehicle_id', vehicle.id);
 
             // Append Files manually
             formData.append('file_id', files.id);

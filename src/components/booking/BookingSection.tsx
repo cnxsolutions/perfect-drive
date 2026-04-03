@@ -5,12 +5,14 @@ import Calendar from './Calendar';
 import PricingTable from './PricingTable';
 import BookingForm from './BookingForm';
 import { DateAvailability } from '@/types/booking';
+import { Vehicle } from '@/types/vehicle';
 
 interface BookingSectionProps {
     availability: DateAvailability[];
+    vehicle?: Vehicle;
 }
 
-export default function BookingSection({ availability }: BookingSectionProps) {
+export default function BookingSection({ availability, vehicle }: BookingSectionProps) {
     const [startDate, setStartDate] = useState<Date | null>(null);
     const [endDate, setEndDate] = useState<Date | null>(null);
 
@@ -160,7 +162,7 @@ export default function BookingSection({ availability }: BookingSectionProps) {
                         </div>
                     )}
 
-                    <PricingTable />
+                    <PricingTable vehicle={vehicle} />
                 </div>
 
                 {/* Right Column: Form */}
@@ -170,6 +172,7 @@ export default function BookingSection({ availability }: BookingSectionProps) {
                         endDate={endDate}
                         startTime={startTime}
                         endTime={endTime}
+                        vehicle={vehicle}
                     />
                 </div>
             </div>

@@ -22,6 +22,10 @@ export interface Vehicle {
     description?: string;
     image_url?: string; // Main image
     images?: string[]; // Gallery images
+    unlimited_rate?: number;
+    weekend_unlimited_rate?: number;
+    is_currently_rented?: boolean; // Attribut dynamique pour l'administration
+    current_rental_state?: 'available' | 'rented' | 'departure_today' | 'return_today' | 'departure_and_return_today';
 }
 
 export interface CreateVehicleDTO {
@@ -37,6 +41,8 @@ export interface CreateVehicleDTO {
     fuel_type: 'petrol' | 'diesel' | 'hybrid' | 'electric';
     daily_rate: number;
     weekend_rate?: number;
+    unlimited_rate?: number;
+    weekend_unlimited_rate?: number;
     mileage_standard_limit: number;
     mileage_excess_rate: number;
     is_available: boolean;

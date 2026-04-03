@@ -6,14 +6,18 @@ import { EmailButton } from './EmailButton';
 interface CustomerRejectedTemplateProps {
     firstname: string;
     reason?: string;
+    vehicleBrand: string;
+    vehicleModel: string;
 }
 
 export const CustomerRejectedTemplate = ({
     firstname,
     reason,
+    vehicleBrand,
+    vehicleModel,
 }: CustomerRejectedTemplateProps) => {
     return (
-        <EmailLayout preview="Mise à jour concernant votre demande">
+        <EmailLayout preview={`Mise à jour concernant votre demande pour la ${vehicleBrand} ${vehicleModel}`}>
             <Text style={headingStyle}>
                 Concernant votre demande de location
             </Text>
@@ -24,7 +28,7 @@ export const CustomerRejectedTemplate = ({
 
             <Text style={paragraphStyle}>
                 Nous vous remercions pour l'intérêt que vous portez à Perfect Drive.
-                Malheureusement, nous ne sommes pas en mesure de donner une suite favorable à votre demande de location pour les dates sélectionnées.
+                Malheureusement, nous ne sommes pas en mesure de donner une suite favorable à votre demande de location de la <strong>{vehicleBrand} {vehicleModel}</strong> pour les dates sélectionnées.
             </Text>
 
             {reason && (

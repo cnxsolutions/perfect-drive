@@ -136,6 +136,19 @@ export default function BookingCard({ booking }: { booking: Booking }) {
                 </div>
             </div>
 
+            {/* Vehicle Info */}
+            <div className="flex items-center gap-3 pb-3 border-b border-white/10">
+                <div className="w-10 h-10 rounded-2xl bg-alpine/10 flex items-center justify-center text-alpine flex-shrink-0 border border-alpine/20">
+                    <Calendar className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-0">
+                    <p className="text-[10px] text-alpine uppercase tracking-widest font-bold">Véhicule</p>
+                    <h3 className="text-white font-oswald text-lg uppercase tracking-wide truncate">
+                        {booking.vehicles?.name || `${booking.vehicles?.brand} ${booking.vehicles?.model}`.replace(/Default/g, '').trim() || 'Véhicule'}
+                    </h3>
+                </div>
+            </div>
+
             {/* Customer Info */}
             <div className="flex items-center gap-3 pb-3 border-b border-white/10">
                 <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white flex-shrink-0">

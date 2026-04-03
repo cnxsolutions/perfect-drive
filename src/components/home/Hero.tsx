@@ -36,6 +36,7 @@ export default function Hero({ vehicle }: HeroProps) {
 
     const vehicleName = vehicle?.name || "Clio V";
     const vehicleTrim = vehicle?.trim || "Esprit Alpine";
+    const vehicleColor = vehicle?.color || "Bleu Fusion";
     const vehicleDescription = vehicle?.description || "Finition Bleu Fusion. Hybride E-Tech 145ch. L'élégance radicale.";
 
     return (
@@ -93,7 +94,7 @@ export default function Hero({ vehicle }: HeroProps) {
                         {/* Overlays */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
                         <div className="absolute bottom-4 left-4 lg:bottom-6 lg:left-6 z-20 pointer-events-none">
-                            <p className="font-oswald text-white text-lg lg:text-xl uppercase tracking-widest drop-shadow-md">{vehicleTrim}</p>
+                            <p className="font-oswald text-white text-lg lg:text-xl uppercase tracking-widest drop-shadow-md">{vehicleColor}</p>
                             <p className="text-alpine text-[10px] lg:text-xs font-bold uppercase tracking-wider mt-1">Perfect Drive Edition</p>
                         </div>
 

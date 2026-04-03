@@ -1,4 +1,5 @@
 import { differenceInCalendarDays, isSaturday, isSunday, addDays, isMonday, isFriday } from 'date-fns';
+import { Vehicle } from '@/types/vehicle';
 
 export type MileageType = 'standard' | 'unlimited';
 
@@ -9,54 +10,36 @@ export interface PriceResult {
     error: string | null;
 }
 
-interface PriceCombination {
-    totalPrice: number;
-    kmLimit: string;
-    breakdown: string;
-}
-
-// Helper: Check if a date is weekend (Sat or Sun)
-function isWeekend(date: Date): boolean {
-    return isSaturday(date) || isSunday(date);
-}
-
 // Helper: Get rate for a single weekday
-function getWeekdayRate(mileage: MileageType): { price: number; km: number } {
-    return mileage === 'unlimited'
-        ? { price: 90, km: 0 }
-        : { price: 60, km: 150 };
-}
+function getWeekdayRate(mileage: MileageType, vehicle?: Vehicle): { price: number; km: number } {
+    const dailyRate = Number(vehicle?.daily_rate || 60);
+    const standardLimit = vehicle?.mileage_standard_limit || 150;
 
-// Helper: Get special rate for 5 consecutive weekdays
-function getWeekdayPackage(days: number, mileage: MileageType): { price: number; km: number } | null {
-    if (days === 5) {
-        return mileage === 'unlimited'
-            ? { price: 350, km: 0 }
-            : { price: 250, km: 700 };
+    if (mileage === 'unlimited') {
+        const price = vehicle?.unlimited_rate || (dailyRate + 30);
+        return { price, km: 0 };
     }
-    return null;
+    return { price: dailyRate, km: standardLimit };
 }
 
 // Helper: Get weekend package rate
-function getWeekendPackage(days: number, mileage: MileageType, endsOnSunday: boolean = false): { price: number; km: number } | null {
-    // 48h weekend
+function getWeekendPackage(days: number, mileage: MileageType, vehicle?: Vehicle): { price: number; km: number } | null {
+    const weekendRate = Number(vehicle?.weekend_rate || 150);
+    const weekendUnlimitedRate = vehicle?.weekend_unlimited_rate || (weekendRate + 50);
+
+    // 48h weekend (Fri-Sun)
     if (days === 2) {
-        return mileage === 'unlimited'
-            ? { price: 200, km: 0 }
-            : { price: 150, km: 350 };
+        if (mileage === 'unlimited') {
+            return { price: Number(weekendUnlimitedRate), km: 0 };
+        }
+        return { price: weekendRate, km: 350 };
     }
 
-    // 72h weekend
-    if (days === 3) {
-        return mileage === 'unlimited'
-            ? { price: 280, km: 0 }
-            : { price: 200, km: 400 };
-    }
     return null;
 }
 
 // Main pricing calculation with optimization
-export function calculatePrice(start: Date, end: Date, mileage: MileageType): PriceResult {
+export function calculatePrice(start: Date, end: Date, mileage: MileageType, vehicle?: Vehicle): PriceResult {
     // Validate inputs
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
         return {
@@ -68,11 +51,6 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
     }
 
     const days = differenceInCalendarDays(end, start);
-
-    // Basic validations
-    if (days < 0) { // Should be days <= 0? Wait, differenceInCalendarDays returns integer days.
-        // If same day, days = 0.
-    }
 
     // Calculate precise duration in hours to enforce 20h minimum
     const startTimestamp = start.getTime();
@@ -88,15 +66,8 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
         };
     }
 
-    // Handle same-day or <24h but >20h logic if needed, 
-    // currently covered by getWeekdayRate or handled as 1 day.
-    // If days=0 (same calendar day), differenceInCalendarDays is 0.
-    // But we might have 20h on same day? (e.g. 02:00 to 23:00).
-    // The existing logic used `if (days <= 0)`.
-
     if (days <= 0) {
-        // If it's less than 24h (and passed 20h check), we charge 1 day rate?
-        const rate = getWeekdayRate(mileage);
+        const rate = getWeekdayRate(mileage, vehicle);
         return {
             totalPrice: rate.price,
             days: 1, // Count as 1 day
@@ -126,7 +97,6 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
     }
 
     // Recursive function to find the optimal price path
-    // Memoization map: date string -> result
     const memo = new Map<number, { price: number; breakdown: string; km: number }>();
 
     function solve(currentDate: Date): { price: number; breakdown: string; km: number } | null {
@@ -148,14 +118,10 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
         }
 
         const options: { price: number; breakdown: string; km: number }[] = [];
-        const rate = getWeekdayRate(mileage);
+        const rate = getWeekdayRate(mileage, vehicle);
 
         // --- Option 1: Weekday (1 day) ---
         const nextDay = addDays(currentDate, 1);
-
-        // Allowed if:
-        // 1. We don't land on Saturday (blocked return)
-        // 2. OR Exception: Sun->Mon (24h) is allowed.
 
         if (!isSaturday(nextDay)) {
             const res = solve(nextDay);
@@ -171,7 +137,7 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
         // --- Option 2: Weekend Package 48h (Fri-Sun) ---
         if (isFriday(currentDate) && remainingDays >= 2) {
             const target = addDays(currentDate, 2);
-            const pkg = getWeekendPackage(2, mileage, true); // 48h
+            const pkg = getWeekendPackage(2, mileage, vehicle);
 
             if (pkg) {
                 const res = solve(target);
@@ -185,25 +151,9 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType): Pr
             }
         }
 
-        // --- Option 3: Weekend Package 72h (Fri-Mon) ---
-        if (isFriday(currentDate) && remainingDays >= 3) {
-            const target = addDays(currentDate, 3);
-            const pkg = getWeekendPackage(3, mileage, false); // 72h
-            if (pkg) {
-                const res = solve(target);
-                if (res) {
-                    options.push({
-                        price: pkg.price + res.price,
-                        breakdown: `Ven-Lun 72h (${pkg.price}€) + ` + res.breakdown,
-                        km: pkg.km + res.km
-                    });
-                }
-            }
-        }
 
         let bestOption: { price: number; breakdown: string; km: number } | null = null;
         if (options.length > 0) {
-            // Find option with minimum price
             bestOption = options.reduce((prev, curr) => prev.price < curr.price ? prev : curr);
         }
 

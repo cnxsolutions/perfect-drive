@@ -6,14 +6,18 @@ import { EmailButton } from './EmailButton';
 interface CustomerPaymentLinkTemplateProps {
     firstname: string;
     paymentLink: string;
+    vehicleBrand: string;
+    vehicleModel: string;
 }
 
 export const CustomerPaymentLinkTemplate = ({
     firstname,
     paymentLink,
+    vehicleBrand,
+    vehicleModel,
 }: CustomerPaymentLinkTemplateProps) => {
     return (
-        <EmailLayout preview="Votre véhicule est disponible 🚗">
+        <EmailLayout preview={`Votre ${vehicleBrand} ${vehicleModel} est disponible 🚗`}>
             <Text style={headingStyle}>
                 Votre dossier est validé ! 🎉
             </Text>
@@ -23,7 +27,7 @@ export const CustomerPaymentLinkTemplate = ({
             </Text>
 
             <Text style={paragraphStyle}>
-                Nous avons le plaisir de vous informer que votre demande de location a été acceptée et que le véhicule est disponible.
+                Nous avons le plaisir de vous informer que votre demande de location pour la <strong>{vehicleBrand} {vehicleModel}</strong> a été acceptée.
             </Text>
 
             <Text style={paragraphStyle}>

@@ -23,9 +23,17 @@ export interface Booking {
     document_license: string;
     document_proof: string;
     deposit_method?: string;
+    vehicle_id?: string;
+    vehicles?: {
+        brand: string;
+        model: string;
+        name: string;
+        image_url?: string;
+    };
 }
 
 export interface CreateBookingDTO {
+    vehicle_id: string;
     startDate: Date;
     endDate: Date;
     startTime: string;

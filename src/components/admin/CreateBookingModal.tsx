@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Calendar as CalendarIcon, User, Loader2, Check } from 'lucide-react';
-import { createAdminBooking } from '@/actions/admin';
+import { X, Calendar as CalendarIcon, User, Loader2, Check, ChevronDown } from 'lucide-react';
+import { createAdminBooking, getVehicles } from '@/actions/admin';
 import { calculatePrice, MileageType } from '@/lib/pricing';
 import { useRouter } from 'next/navigation';
+import { Vehicle } from '@/types/vehicle';
 
 import Calendar from '@/components/booking/Calendar';
 
@@ -13,6 +14,10 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
     const [loading, setLoading] = useState(false);
     const [availability, setAvailability] = useState<any[]>([]);
     const [minStartTime, setMinStartTime] = useState<string | null>(null);
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+    const [isVehicleMenuOpen, setIsVehicleMenuOpen] = useState(false);
+    const [isDepositMenuOpen, setIsDepositMenuOpen] = useState(false);
 
     // Form Data
     const [formData, setFormData] = useState({
@@ -28,16 +33,34 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
         address: '',
         status: 'approved',
         depositMethod: 'imprint' as 'imprint' | 'cash',
+        vehicle_id: '',
     });
 
-    // Fetch availability on mount
+    // Fetch vehicles on mount
     useEffect(() => {
+        const loadVehicles = async () => {
+            const res = await getVehicles();
+            if (res.success && res.vehicles) {
+                setVehicles(res.vehicles);
+                if (res.vehicles.length > 0) {
+                    setFormData(prev => ({ ...prev, vehicle_id: res.vehicles[0].id }));
+                    setSelectedVehicle(res.vehicles[0]);
+                }
+            }
+        };
+        loadVehicles();
+    }, []);
+
+    // Fetch availability when vehicle changes
+    useEffect(() => {
+        if (!formData.vehicle_id) return;
+        
         const fetchAvailability = async () => {
-            const dates = await import('@/actions/booking').then(mod => mod.getBookingAvailability());
+            const dates = await import('@/actions/booking').then(mod => mod.getBookingAvailability(formData.vehicle_id));
             setAvailability(dates);
         };
         fetchAvailability();
-    }, []);
+    }, [formData.vehicle_id]);
 
     // Calculate price as derived state
     const price = (formData.startDate && formData.endDate)
@@ -51,7 +74,8 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
             return calculatePrice(
                 start,
                 end,
-                formData.mileage
+                formData.mileage,
+                selectedVehicle || undefined
             ).totalPrice
         })()
         : 0;
@@ -228,6 +252,55 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
                     <div className="w-full lg:w-1/2 p-6 overflow-y-auto">
                         <form id="create-booking-form" onSubmit={handleSubmit} className="space-y-6">
 
+                            {/* Vehicle Selection */}
+                            <div className="space-y-4">
+                                <h4 className="text-alpine text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                                    <CalendarIcon className="w-3 h-3" /> Véhicule
+                                </h4>
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsVehicleMenuOpen(!isVehicleMenuOpen)}
+                                        className={`w-full p-4 glass-input rounded-2xl text-left text-sm flex justify-between items-center transition-all ${isVehicleMenuOpen ? 'border-alpine shadow-[0_0_20px_rgba(0,81,255,0.2)]' : ''}`}
+                                    >
+                                        <span className={selectedVehicle ? 'text-white' : 'text-gray-500'}>
+                                            {selectedVehicle 
+                                                ? `${selectedVehicle.name} ${selectedVehicle.trim ? `- ${selectedVehicle.trim}` : ''} ${selectedVehicle.color ? `- ${selectedVehicle.color}` : ''}`
+                                                : 'Sélectionner un véhicule'}
+                                        </span>
+                                        <ChevronDown className={`w-4 h-4 text-alpine transition-transform ${isVehicleMenuOpen ? 'rotate-180' : ''}`} />
+                                    </button>
+
+                                    {isVehicleMenuOpen && (
+                                        <>
+                                            {/* Backdrop to close click-outside overlay style */}
+                                            <div className="fixed inset-0 z-10" onClick={() => setIsVehicleMenuOpen(false)}></div>
+                                            <div className="absolute top-full left-0 right-0 mt-2 bg-darkbg/90 border border-white/10 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl z-20 animate-scale-in">
+                                                {vehicles.map(v => (
+                                                    <button
+                                                        key={v.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setFormData({ ...formData, vehicle_id: v.id });
+                                                            setSelectedVehicle(v);
+                                                            setIsVehicleMenuOpen(false);
+                                                        }}
+                                                        className={`w-full p-4 text-left text-sm hover:bg-alpine/20 border-b border-white/5 last:border-0 transition-colors flex items-center justify-between ${formData.vehicle_id === v.id ? 'bg-alpine/10 text-white' : 'text-gray-400'}`}
+                                                    >
+                                                        <div className="flex flex-col">
+                                                            <span className="font-bold">
+                                                                {v.name} {v.trim ? `- ${v.trim}` : ''} {v.color ? `- ${v.color}` : ''}
+                                                            </span>
+                                                        </div>
+                                                        {formData.vehicle_id === v.id && <Check className="w-4 h-4 text-alpine" />}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+
                             {/* Client */}
                             <div className="space-y-4">
                                 <h4 className="text-alpine text-xs font-bold uppercase tracking-widest flex items-center gap-2">
@@ -345,14 +418,40 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
 
                                 <div className="flex justify-between items-center mb-4">
                                     <label className="text-xs text-gray-400 uppercase">Mode de Caution</label>
-                                    <select
-                                        value={formData.depositMethod}
-                                        onChange={e => setFormData({ ...formData, depositMethod: e.target.value as 'imprint' | 'cash' })}
-                                        className="bg-black/50 border border-white/10 rounded px-2 py-1 text-xs text-white"
-                                    >
-                                        <option value="imprint">Empreinte CB</option>
-                                        <option value="cash">Espèces (700€)</option>
-                                    </select>
+                                    <div className="relative min-w-[200px]">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsDepositMenuOpen(!isDepositMenuOpen)}
+                                            className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs text-white flex justify-between items-center hover:bg-white/10 transition-all ${isDepositMenuOpen ? 'border-alpine' : ''}`}
+                                        >
+                                            {formData.depositMethod === 'imprint' ? 'Empreinte CB' : 'Espèces (700€)'}
+                                            <ChevronDown className={`w-3 h-3 text-alpine/50 transition-transform ${isDepositMenuOpen ? 'rotate-180' : ''}`} />
+                                        </button>
+
+                                        {isDepositMenuOpen && (
+                                            <>
+                                                <div className="fixed inset-0 z-10" onClick={() => setIsDepositMenuOpen(false)}></div>
+                                                <div className="absolute bottom-full mb-2 left-0 right-0 bg-darkbg/95 border border-white/10 backdrop-blur-xl rounded-xl overflow-hidden shadow-2xl z-20 animate-scale-in">
+                                                    {[
+                                                        { id: 'imprint', label: 'Empreinte CB' },
+                                                        { id: 'cash', label: 'Espèces (700€)' }
+                                                    ].map(opt => (
+                                                        <button
+                                                            key={opt.id}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFormData({ ...formData, depositMethod: opt.id as any });
+                                                                setIsDepositMenuOpen(false);
+                                                            }}
+                                                            className={`w-full p-3 text-left text-xs hover:bg-white/10 transition-colors ${formData.depositMethod === opt.id ? 'text-alpine' : 'text-gray-400'}`}
+                                                        >
+                                                            {opt.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="flex justify-between items-center border-t border-white/10 pt-4">

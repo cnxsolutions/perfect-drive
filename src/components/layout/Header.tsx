@@ -3,13 +3,28 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronDown, Mail, Phone, Instagram, Menu, X } from 'lucide-react';
+import { ChevronDown, Mail, Phone, Instagram, Menu, X, Car } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { getVehicles } from '@/actions/admin';
+import { Vehicle } from '@/types/vehicle';
 
 export default function Header() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isVehiclesOpen, setIsVehiclesOpen] = useState(false);
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
 
     const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+
+    // Fetch vehicles for the dropdown
+    useEffect(() => {
+        async function loadVehicles() {
+            const res = await getVehicles();
+            if (res.success && res.vehicles) {
+                setVehicles(res.vehicles);
+            }
+        }
+        loadVehicles();
+    }, []);
 
     // Lock body scroll when mobile menu is open
     useEffect(() => {
@@ -52,17 +67,45 @@ export default function Header() {
 
                     {/* Desktop Nav */}
                     <nav className="hidden md:flex gap-8 font-oswald text-sm tracking-widest text-gray-300 items-center">
-                        <Link href="#showroom" className="hover:text-alpine transition duration-300 relative group">
-                            VÉHICULES
-                            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-alpine transition-all group-hover:w-full"></span>
-                        </Link>
-                        <Link href="#booking" className="hover:text-alpine transition duration-300 relative group">
+                        <div className="relative group">
+                            <button className="hover:text-alpine transition duration-300 flex items-center gap-1 py-4 uppercase font-bold tracking-widest">
+                                VÉHICULES <ChevronDown className="w-3 h-3 group-hover:rotate-180 transition-transform" />
+                            </button>
+                            
+                            <div className="absolute left-0 top-full w-64 glass-panel rounded-xl p-2 hidden group-hover:block animate-fade-in-up border border-white/10 shadow-2xl overflow-hidden">
+                                {vehicles.length > 0 ? (
+                                    vehicles.map((v) => (
+                                        <Link 
+                                            key={v.id} 
+                                            href={`/vehicules/${v.id}`}
+                                            className="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg transition group/item"
+                                        >
+                                            <div className="w-10 h-10 rounded-lg bg-alpine/20 flex items-center justify-center text-alpine group-hover/item:bg-alpine group-hover/item:text-white transition overflow-hidden">
+                                                {v.image_url ? (
+                                                    <Image src={v.image_url} alt={v.name} width={40} height={40} className="object-cover h-full" />
+                                                ) : (
+                                                    <Car className="w-5 h-5" />
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-white text-xs font-montserrat">{v.name}</span>
+                                                <span className="text-[9px] text-gray-500 font-montserrat uppercase tracking-wider">{v.trim}</span>
+                                            </div>
+                                        </Link>
+                                    ))
+                                ) : (
+                                    <div className="p-4 text-center text-[10px] text-gray-500">Chargement...</div>
+                                )}
+                            </div>
+                        </div>
+
+                        <Link href="#booking" className="hover:text-alpine transition duration-300 relative group uppercase font-bold tracking-widest">
                             AGENCE
                             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-alpine transition-all group-hover:w-full"></span>
                         </Link>
 
                         <div className="relative group">
-                            <button className="hover:text-alpine transition duration-300 flex items-center gap-1 py-4">
+                            <button className="hover:text-alpine transition duration-300 flex items-center gap-1 py-4 uppercase font-bold tracking-widest">
                                 CONTACT <ChevronDown className="w-3 h-3 group-hover:rotate-180 transition-transform" />
                             </button>
 
@@ -144,7 +187,7 @@ export default function Header() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: '100%' }}
                         transition={{ duration: 0.3, ease: 'easeInOut' }}
-                        className="fixed inset-0 bg-darkbg z-[100] flex flex-col items-center justify-center px-6"
+                        className="fixed inset-0 bg-darkbg z-[100] flex flex-col items-center justify-center px-6 overflow-y-auto"
                     >
                         {/* Close Button */}
                         <button
@@ -156,60 +199,50 @@ export default function Header() {
                         </button>
 
                         {/* Navigation Links */}
-                        <nav className="flex flex-col gap-6 mb-12 w-full max-w-md">
-                            <Link
-                                href="#showroom"
-                                onClick={toggleMobileMenu}
-                                className="text-4xl font-oswald font-bold text-white hover:text-alpine transition-colors border-b border-white/10 pb-4 text-center"
-                            >
-                                VÉHICULES
-                            </Link>
+                        <nav className="flex flex-col gap-4 mb-12 w-full max-w-md pt-20">
+                            <div className="text-gray-500 font-oswald text-xs tracking-widest uppercase mb-2 text-center">Nos Véhicules</div>
+                            {vehicles.map((v) => (
+                                <Link
+                                    key={v.id}
+                                    href={`/vehicules/${v.id}`}
+                                    onClick={toggleMobileMenu}
+                                    className="text-2xl font-oswald font-bold text-white hover:text-alpine transition-colors border-b border-white/5 pb-3 flex items-center justify-center gap-3"
+                                >
+                                    <Car className="w-5 h-5 text-alpine" />
+                                    {v.name}
+                                </Link>
+                            ))}
+                            
+                            <div className="h-4" />
+
                             <Link
                                 href="#booking"
                                 onClick={toggleMobileMenu}
-                                className="text-4xl font-oswald font-bold text-white hover:text-alpine transition-colors border-b border-white/10 pb-4 text-center"
+                                className="text-3xl font-oswald font-bold text-white/50 hover:text-alpine transition-colors py-4 text-center"
                             >
                                 AGENCE
                             </Link>
                         </nav>
 
                         {/* Contact Section */}
-                        <div className="w-full max-w-md">
-                            <p className="text-gray-400 text-sm font-montserrat mb-6 uppercase tracking-widest text-center">
+                        <div className="w-full max-w-md pb-10">
+                            <p className="text-gray-400 text-[10px] font-montserrat mb-6 uppercase tracking-widest text-center">
                                 Nous contacter
                             </p>
 
                             {/* Contact Cards */}
-                            <div className="flex flex-col gap-4">
+                            <div className="grid grid-cols-2 gap-3">
                                 {/* WhatsApp */}
                                 <a
                                     href="https://wa.me/33762711498"
                                     target="_blank"
                                     onClick={toggleMobileMenu}
-                                    className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl hover:bg-white/10 transition-all"
+                                    className="flex flex-col items-center gap-2 p-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl hover:bg-white/10 transition-all text-center"
                                 >
-                                    <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
-                                        <Phone size={20} />
+                                    <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
+                                        <Phone size={18} />
                                     </div>
-                                    <div className="flex flex-col">
-                                        <span className="font-bold text-white text-sm font-montserrat">WhatsApp</span>
-                                        <span className="text-xs text-gray-400 font-montserrat">07 62 71 14 98</span>
-                                    </div>
-                                </a>
-
-                                {/* Email */}
-                                <a
-                                    href="mailto:contact.perfectdrive@gmail.com"
-                                    onClick={toggleMobileMenu}
-                                    className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl hover:bg-white/10 transition-all"
-                                >
-                                    <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
-                                        <Mail size={20} />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="font-bold text-white text-sm font-montserrat">Email</span>
-                                        <span className="text-xs text-gray-400 font-montserrat">contact.perfectdrive@gmail.com</span>
-                                    </div>
+                                    <span className="font-bold text-white text-[10px] font-montserrat">WhatsApp</span>
                                 </a>
 
                                 {/* Instagram */}
@@ -217,15 +250,12 @@ export default function Header() {
                                     href="https://www.instagram.com/perfectdrive10"
                                     target="_blank"
                                     onClick={toggleMobileMenu}
-                                    className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl hover:bg-white/10 transition-all"
+                                    className="flex flex-col items-center gap-2 p-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl hover:bg-white/10 transition-all text-center"
                                 >
-                                    <div className="w-12 h-12 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-500">
-                                        <Instagram size={20} />
+                                    <div className="w-10 h-10 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-500">
+                                        <Instagram size={18} />
                                     </div>
-                                    <div className="flex flex-col">
-                                        <span className="font-bold text-white text-sm font-montserrat">Instagram</span>
-                                        <span className="text-xs text-gray-400 font-montserrat">@perfectdrive10</span>
-                                    </div>
+                                    <span className="font-bold text-white text-[10px] font-montserrat">Instagram</span>
                                 </a>
                             </div>
                         </div>

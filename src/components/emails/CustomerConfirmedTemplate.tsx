@@ -7,6 +7,8 @@ interface CustomerConfirmedTemplateProps {
     startDate: string;
     endDate: string;
     totalPrice: number;
+    vehicleBrand: string;
+    vehicleModel: string;
 }
 
 export const CustomerConfirmedTemplate = ({
@@ -14,21 +16,24 @@ export const CustomerConfirmedTemplate = ({
     startDate,
     endDate,
     totalPrice,
+    vehicleBrand,
+    vehicleModel,
 }: CustomerConfirmedTemplateProps) => {
     return (
-        <EmailLayout preview="Réservation confirmée ✅">
+        <EmailLayout preview={`Votre réservation pour la ${vehicleBrand} ${vehicleModel} est confirmée ✅`}>
             <Text style={headingStyle}>
                 C'est tout bon ! 🏎️
             </Text>
 
             <Text style={paragraphStyle}>
-                Félicitations {firstname}, votre réservation est officiellement confirmée.
+                Félicitations {firstname}, votre réservation pour la <strong>{vehicleBrand} {vehicleModel}</strong> est officiellement confirmée.
             </Text>
 
             <Hr style={dividerStyle} />
 
             <Text style={sectionTitleStyle}>Récapitulatif</Text>
             <Text style={infoTextStyle}>
+                <strong>Véhicule :</strong> {vehicleBrand} {vehicleModel}<br />
                 <strong>Départ :</strong> {startDate}<br />
                 <strong>Retour :</strong> {endDate}<br />
                 <strong>Total :</strong> {totalPrice.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}

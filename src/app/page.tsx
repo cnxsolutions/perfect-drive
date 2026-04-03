@@ -8,20 +8,18 @@ import { getVehicles } from "@/actions/admin";
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  const [availability, vehiclesResponse] = await Promise.all([
-    getBookingAvailability(),
-    getVehicles()
-  ]);
-
+  const vehiclesResponse = await getVehicles();
   const mainVehicle = vehiclesResponse.success && vehiclesResponse.vehicles && vehiclesResponse.vehicles.length > 0
     ? vehiclesResponse.vehicles[0]
     : undefined;
+
+  const availability = await getBookingAvailability(mainVehicle?.id);
 
   return (
     <main className="min-h-screen relative bg-darkbg text-white selection:bg-alpine selection:text-white">
       <Header />
       <Hero vehicle={mainVehicle} />
-      <BookingSection availability={availability} />
+      <BookingSection availability={availability} vehicle={mainVehicle} />
       <Footer />
     </main>
   );
