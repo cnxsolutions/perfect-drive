@@ -28,6 +28,8 @@ export interface Booking {
         brand: string;
         model: string;
         name: string;
+        trim?: string;
+        color?: string;
         image_url?: string;
     };
 }

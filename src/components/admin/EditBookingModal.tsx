@@ -68,7 +68,9 @@ export default function EditBookingModal({ booking, onClose }: EditBookingModalP
             return calculatePrice(
                 start,
                 end,
-                formData.mileage
+                formData.mileage,
+                undefined,
+                true // isAdmin
             ).totalPrice
         })()
         : 0;

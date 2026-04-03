@@ -75,7 +75,8 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
                 start,
                 end,
                 formData.mileage,
-                selectedVehicle || undefined
+                selectedVehicle || undefined,
+                true // isAdmin
             ).totalPrice
         })()
         : 0;

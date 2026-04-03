@@ -146,48 +146,7 @@ export default function DashboardClient({ initialBookings, vehicles }: Dashboard
 
     return (
         <div className="animate-fade-in-up pb-10">
-            {/* Filtres Bar */}
-            <div className="flex flex-col md:flex-row gap-4 mb-8 bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-md relative z-20">
-                <div className="relative flex-1 max-w-sm" ref={vehicleRef}>
-                    <label className="block text-xs font-bold text-alpine uppercase tracking-widest mb-2 pl-2">Véhicule</label>
-                    <div 
-                        className="w-full bg-darkbg border border-white/10 rounded-xl p-4 flex justify-between items-center cursor-pointer hover:border-white/30 transition-all text-white font-oswald text-lg md:text-xl uppercase tracking-wide"
-                        onClick={() => {
-                            setIsVehicleOpen(!isVehicleOpen);
-                        }}
-                    >
-                        <div className="flex items-center gap-3 truncate">
-                            <LayoutGrid className="w-5 h-5 text-alpine flex-shrink-0" />
-                            <span className="truncate">{selectedVehicleId === 'all' ? 'Tous les véhicules' : getVehicleDisplay(currentVehicle)}</span>
-                        </div>
-                        <ChevronDown className={clsx("w-5 h-5 text-alpine transition-transform", isVehicleOpen ? "rotate-180" : "")} />
-                    </div>
 
-                    {isVehicleOpen && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-[#1C1C1C] border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50">
-                            <div className="max-h-60 overflow-y-auto">
-                                <div 
-                                    className={clsx("p-4 flex items-center justify-between cursor-pointer border-b border-white/5 hover:bg-white/5 text-white font-oswald uppercase tracking-wide", selectedVehicleId === 'all' && "bg-alpine/10 text-alpine")}
-                                    onClick={() => { setSelectedVehicleId('all'); setIsVehicleOpen(false); }}
-                                >
-                                    <span>Tous les véhicules</span>
-                                    {selectedVehicleId === 'all' && <Check className="w-4 h-4 text-alpine" />}
-                                </div>
-                                {vehicles.map(v => (
-                                    <div 
-                                        key={v.id}
-                                        className={clsx("p-4 flex items-center justify-between cursor-pointer border-b border-white/5 hover:bg-white/5 text-white font-oswald uppercase tracking-wide", selectedVehicleId === v.id && "bg-alpine/10 text-alpine")}
-                                        onClick={() => { setSelectedVehicleId(v.id); setIsVehicleOpen(false); }}
-                                    >
-                                        <span>{getVehicleDisplay(v)}</span>
-                                        {selectedVehicleId === v.id && <Check className="w-4 h-4 text-alpine" />}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
 
             {/* Results */}
             <div className="grid gap-12 relative z-10">

@@ -34,19 +34,28 @@ export default function BookingForm({ startDate, endDate, startTime, endTime, ve
         id: null, license: null, proof: null
     });
 
+    const [standardKmLimitStr, setStandardKmLimitStr] = useState('150 km/jour');
+
     // Calculate Price
     useEffect(() => {
         if (!startDate || !endDate) {
             setPrice(mileage === 'unlimited' ? baseUnlimited : baseDaily);
             setKmLimit(mileage === 'unlimited' ? "Kilométrage Illimité" : `Inclus : ${kmStandard} km`);
+            setStandardKmLimitStr(`${kmStandard} km/jour`);
             setAlertMessage(null);
             return;
         }
 
         const { totalPrice, kmLimit: limit, error } = calculatePrice(startDate, endDate, mileage, vehicle);
 
+        // Determine the rate description for the limited card
+        const diffDays = Math.abs((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+        const isFridayStart = startDate.getDay() === 5; // 5 is Friday
+        const isWeekendPkg = diffDays === 2 && isFridayStart;
+
         setPrice(error ? "--" : totalPrice);
         setKmLimit(error ? "Indisponible" : limit);
+        setStandardKmLimitStr(isWeekendPkg ? '350 km / week-end' : `${kmStandard} km/jour`);
         setAlertMessage(error);
 
     }, [startDate, endDate, mileage, vehicle, baseDaily, baseUnlimited, kmStandard]);
@@ -176,7 +185,7 @@ export default function BookingForm({ startDate, endDate, startTime, endTime, ve
                                         }`}>
                                         Limité
                                     </span>
-                                    <span className="text-xs text-gray-400">150 km/jour</span>
+                                    <span className="text-xs text-gray-400">{standardKmLimitStr}</span>
                                     <span className="text-[9px] text-gray-500 italic mt-1">0,50€/km si dépassé</span>
                                 </div>
                             </button>

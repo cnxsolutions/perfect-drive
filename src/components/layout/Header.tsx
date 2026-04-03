@@ -89,7 +89,10 @@ export default function Header() {
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="font-bold text-white text-xs font-montserrat">{v.name}</span>
-                                                <span className="text-[9px] text-gray-500 font-montserrat uppercase tracking-wider">{v.trim}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[9px] text-gray-500 font-montserrat uppercase tracking-wider">{v.trim}</span>
+                                                    <span className="text-[9px] bg-alpine/20 text-alpine px-1 rounded font-bold">Dès {v.daily_rate}€</span>
+                                                </div>
                                             </div>
                                         </Link>
                                     ))
@@ -206,10 +209,15 @@ export default function Header() {
                                     key={v.id}
                                     href={`/vehicules/${v.id}`}
                                     onClick={toggleMobileMenu}
-                                    className="text-2xl font-oswald font-bold text-white hover:text-alpine transition-colors border-b border-white/5 pb-3 flex items-center justify-center gap-3"
+                                    className="text-2xl font-oswald font-bold text-white hover:text-alpine transition-colors border-b border-white/5 pb-3 flex flex-col items-center justify-center gap-2"
                                 >
-                                    <Car className="w-5 h-5 text-alpine" />
-                                    {v.name}
+                                    <div className="flex items-center gap-3">
+                                        <Car className="w-5 h-5 text-alpine" />
+                                        {v.name}
+                                    </div>
+                                    <span className="text-xs tracking-wider bg-alpine/20 text-alpine px-2 py-1 rounded-md font-montserrat uppercase">
+                                        Dès {v.daily_rate}€/j
+                                    </span>
                                 </Link>
                             ))}
                             

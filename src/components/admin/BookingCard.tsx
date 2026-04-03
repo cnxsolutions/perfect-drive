@@ -144,7 +144,7 @@ export default function BookingCard({ booking }: { booking: Booking }) {
                 <div className="flex-1 min-0">
                     <p className="text-[10px] text-alpine uppercase tracking-widest font-bold">Véhicule</p>
                     <h3 className="text-white font-oswald text-lg uppercase tracking-wide truncate">
-                        {booking.vehicles?.name || `${booking.vehicles?.brand} ${booking.vehicles?.model}`.replace(/Default/g, '').trim() || 'Véhicule'}
+                        {`${booking.vehicles?.name || ''} ${booking.vehicles?.trim || ''}`.trim() || `${booking.vehicles?.brand} ${booking.vehicles?.model}`.replace(/Default/g, '').trim() || 'Véhicule'}
                     </h3>
                 </div>
             </div>

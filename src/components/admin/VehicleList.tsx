@@ -51,10 +51,11 @@ export default function VehicleList({ vehicles, onRefresh }: VehicleListProps) {
                 <div className="bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden flex flex-col shadow-2xl">
                     {/* Header Row (Desktop only) */}
                     <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-white/5 border-b border-white/10 text-[10px] font-semibold text-gray-400 uppercase tracking-widest sticky top-0 z-10">
-                        <div className="col-span-5">Véhicule</div>
+                        <div className="col-span-4">Véhicule</div>
                         <div className="col-span-3">Tarifs (Std / Illimité)</div>
+                        <div className="col-span-2 text-center">CA Mensuel</div>
                         <div className="col-span-2 text-center">Statut</div>
-                        <div className="col-span-2 text-right">Actions</div>
+                        <div className="col-span-1 text-right">Actions</div>
                     </div>
                     
                     {/* List */}
@@ -63,7 +64,7 @@ export default function VehicleList({ vehicles, onRefresh }: VehicleListProps) {
                             <div key={vehicle.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center px-4 md:px-6 py-3 hover:bg-white/[0.02] transition-colors group">
                                 
                                 {/* Voiture */}
-                                <div className="col-span-1 md:col-span-5 flex items-center gap-4">
+                                <div className="col-span-1 md:col-span-4 flex items-center gap-4">
                                     <div className="w-12 h-12 relative rounded-md border border-white/10 flex-shrink-0 bg-[#222] overflow-hidden">
                                         {vehicle.image_url ? (
                                             // eslint-disable-next-line @next/next/no-img-element
@@ -106,6 +107,15 @@ export default function VehicleList({ vehicles, onRefresh }: VehicleListProps) {
                                     </div>
                                 </div>
 
+                                {/* CA Mensuel */}
+                                <div className="hidden md:flex col-span-2 flex-col items-center justify-center">
+                                    <div className="bg-alpine/10 border border-alpine/20 px-3 py-1 rounded-full flex items-center gap-2">
+                                        <span className="text-[10px] text-alpine font-bold font-mono">CA:</span>
+                                        <span className="text-sm font-bold text-white">{(vehicle as any).monthly_revenue || 0}€</span>
+                                    </div>
+                                    <span className="text-[8px] text-gray-500 mt-1 uppercase tracking-wider">Mois (26 au 26)</span>
+                                </div>
+
                                 {/* Disponibilité / Statut */}
                                 <div className="col-span-1 md:col-span-2 flex flex-col md:items-center justify-center gap-2">
                                     <div className="flex items-center gap-2">
@@ -140,7 +150,7 @@ export default function VehicleList({ vehicles, onRefresh }: VehicleListProps) {
                                 </div>
 
                                 {/* Actions */}
-                                <div className="col-span-1 md:col-span-2 flex items-center md:justify-end gap-2 mt-3 md:mt-0 pt-3 md:pt-0 border-t border-white/5 md:border-none">
+                                <div className="col-span-1 md:col-span-1 flex items-center md:justify-end gap-2 mt-3 md:mt-0 pt-3 md:pt-0 border-t border-white/5 md:border-none">
                                     <button
                                         onClick={() => setEditingId(vehicle.id)}
                                         className="p-1.5 text-gray-500 hover:text-white hover:bg-white/10 rounded-md transition-colors"

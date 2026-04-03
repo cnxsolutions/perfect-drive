@@ -39,7 +39,7 @@ function getWeekendPackage(days: number, mileage: MileageType, vehicle?: Vehicle
 }
 
 // Main pricing calculation with optimization
-export function calculatePrice(start: Date, end: Date, mileage: MileageType, vehicle?: Vehicle): PriceResult {
+export function calculatePrice(start: Date, end: Date, mileage: MileageType, vehicle?: Vehicle, isAdmin: boolean = false): PriceResult {
     // Validate inputs
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
         return {
@@ -67,7 +67,21 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType, veh
     }
 
     if (days <= 0) {
-        const rate = getWeekdayRate(mileage, vehicle);
+        const isWeekendDay = isFriday(start) || isSaturday(start) || isSunday(start);
+        
+        let rate: { price: number; km: number };
+        if (isAdmin && isWeekendDay) {
+            const weekendRate = Number(vehicle?.weekend_rate || 150);
+            const weekendUnlimitedRate = vehicle?.weekend_unlimited_rate || (weekendRate + 50);
+            if (mileage === 'unlimited') {
+                rate = { price: weekendUnlimitedRate / 2, km: 0 };
+            } else {
+                rate = { price: weekendRate / 2, km: 350 / 2 };
+            }
+        } else {
+            rate = getWeekdayRate(mileage, vehicle);
+        }
+
         return {
             totalPrice: rate.price,
             days: 1, // Count as 1 day
@@ -76,8 +90,8 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType, veh
         };
     }
 
-    // Check if start is Saturday (blocked)
-    if (isSaturday(start)) {
+    // Check if start is Saturday (blocked except for admin)
+    if (!isAdmin && isSaturday(start)) {
         return {
             totalPrice: 0,
             days,
@@ -86,8 +100,8 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType, veh
         };
     }
 
-    // Check if return is Saturday (blocked)
-    if (isSaturday(end)) {
+    // Check if return is Saturday (blocked except for admin)
+    if (!isAdmin && isSaturday(end)) {
         return {
             totalPrice: 0,
             days,
@@ -118,18 +132,26 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType, veh
         }
 
         const options: { price: number; breakdown: string; km: number }[] = [];
-        const rate = getWeekdayRate(mileage, vehicle);
+        let dayRate = getWeekdayRate(mileage, vehicle);
 
         // --- Option 1: Weekday (1 day) ---
         const nextDay = addDays(currentDate, 1);
 
-        if (!isSaturday(nextDay)) {
+        if (isAdmin || !isSaturday(nextDay)) {
+            if (isAdmin && (isFriday(currentDate) || isSaturday(currentDate) || isSunday(currentDate))) {
+                const weekendRate = Number(vehicle?.weekend_rate || 150);
+                const weekendUnlimitedRate = vehicle?.weekend_unlimited_rate || (weekendRate + 50);
+                dayRate = mileage === 'unlimited' 
+                    ? { price: weekendUnlimitedRate / 2, km: 0 }
+                    : { price: weekendRate / 2, km: 350 / 2 };
+            }
+
             const res = solve(nextDay);
             if (res) {
                 options.push({
-                    price: rate.price + res.price,
-                    breakdown: `1j (${rate.price}€) + ` + res.breakdown,
-                    km: rate.km + res.km
+                    price: dayRate.price + res.price,
+                    breakdown: `1j (${dayRate.price}€) + ` + res.breakdown,
+                    km: dayRate.km + res.km
                 });
             }
         }

@@ -36,8 +36,8 @@ export async function approveBooking(bookingId: string) {
                         startDate: new Date(booking.start_date).toLocaleDateString('fr-FR'),
                         endDate: new Date(booking.end_date).toLocaleDateString('fr-FR'),
                         totalPrice: booking.total_price,
-                        vehicleBrand: (booking.vehicles as any)?.name || ((booking.vehicles as any)?.brand?.replace('Default', '') || 'Véhicule').trim(),
-                        vehicleModel: ((booking.vehicles as any)?.model?.replace('Default', '') || '').trim(),
+                        vehicleBrand: `${(booking.vehicles as any)?.name || 'Véhicule'} ${(booking.vehicles as any)?.trim || ''}`.replace(/Default/g, '').trim(),
+                        vehicleModel: '',
                     }) as React.ReactElement,
                 });
             } catch (emailError) {
@@ -77,8 +77,8 @@ export async function sendPaymentLink(bookingId: string, paymentLink: string) {
                     react: CustomerPaymentLinkTemplate({
                         firstname: booking.customer_firstname,
                         paymentLink: paymentLink,
-                        vehicleBrand: (booking.vehicles as any)?.name || ((booking.vehicles as any)?.brand?.replace('Default', '') || 'Véhicule').trim(),
-                        vehicleModel: ((booking.vehicles as any)?.model?.replace('Default', '') || '').trim(),
+                        vehicleBrand: `${(booking.vehicles as any)?.name || 'Véhicule'} ${(booking.vehicles as any)?.trim || ''}`.replace(/Default/g, '').trim(),
+                        vehicleModel: '',
                     }) as React.ReactElement,
                 });
             } catch (emailError) {
@@ -117,8 +117,8 @@ export async function rejectBooking(bookingId: string, reason: string) {
                     react: CustomerRejectedTemplate({
                         firstname: booking.customer_firstname,
                         reason: reason,
-                        vehicleBrand: (booking.vehicles as any)?.name || ((booking.vehicles as any)?.brand?.replace('Default', '') || 'Véhicule').trim(),
-                        vehicleModel: ((booking.vehicles as any)?.model?.replace('Default', '') || '').trim(),
+                        vehicleBrand: `${(booking.vehicles as any)?.name || 'Véhicule'} ${(booking.vehicles as any)?.trim || ''}`.replace(/Default/g, '').trim(),
+                        vehicleModel: '',
                     }) as React.ReactElement,
                 });
             } catch (emailError) {
@@ -270,8 +270,8 @@ export async function createAdminBooking(formData: FormData) {
                         subject: 'Votre réservation - Perfect Drive',
                         react: CustomerReceivedTemplate({
                             firstname: rawData.firstname,
-                            vehicleBrand: vehicle.name || (vehicle.brand?.replace('Default', '') || 'Véhicule').trim(),
-                            vehicleModel: (vehicle.model?.replace('Default', '') || '').trim(),
+                            vehicleBrand: `${vehicle.name || 'Véhicule'} ${vehicle.trim || ''}`.replace(/Default/g, '').trim(),
+                            vehicleModel: '',
                         }) as React.ReactElement,
                     });
                 }
@@ -481,38 +481,74 @@ export async function getVehicles() {
                 bookings (
                     start_date,
                     end_date,
-                    status
+                    start_time,
+                    end_time,
+                    status,
+                    total_price
                 )
             `)
             .order('created_at', { ascending: false });
 
         if (error) throw error;
 
-        // Calcul du statut en temps réel pour l'administration
-        const today = new Date().toISOString().substring(0, 10);
+        // Calcul du statut en temps réel incluant les heures d'arrivée et départ
+        const now = new Date();
+        // Determine the start and end of the current accounting period (from 26th to 26th)
+        let periodStart = new Date(now.getFullYear(), now.getMonth(), 26, 0, 0, 0);
+        let periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 26, 0, 0, 0);
+
+        if (now.getDate() < 26) {
+            periodStart = new Date(now.getFullYear(), now.getMonth() - 1, 26, 0, 0, 0);
+            periodEnd = new Date(now.getFullYear(), now.getMonth(), 26, 0, 0, 0);
+        }
         
         const enrichedVehicles = vehicles?.map((vehicle: any) => {
             const activeBookings = vehicle.bookings || [];
             
             let rentalState = 'available';
+            let monthlyRevenue = 0;
 
-            // Check if there is an approved/paid rental covering today
             for (const b of activeBookings) {
                 if (b.status !== 'approved' && b.status !== 'paid') continue;
                 
-                if (b.start_date <= today && b.end_date >= today) {
-                    if (b.start_date === today && b.end_date === today) {
-                        rentalState = 'departure_and_return_today';
-                        break;
-                    } else if (b.start_date === today) {
-                        rentalState = 'departure_today';
-                        break;
-                    } else if (b.end_date === today) {
+                // Format time string to handle Postgres "HH:mm:ss" vs normal "HH:mm"
+                const sTime = b.start_time ? b.start_time.substring(0, 5) : '00:00';
+                const eTime = b.end_time ? b.end_time.substring(0, 5) : '23:59';
+                
+                // Construct Date objects from date and time
+                const startDateTime = new Date(`${b.start_date}T${sTime}:00`);
+                const endDateTime = new Date(`${b.end_date}T${eTime}:59`);
+                
+                // Add to monthly revenue if it starts in the current accounting period AND has already started
+                if (
+                    startDateTime >= periodStart && 
+                    startDateTime < periodEnd &&
+                    startDateTime <= now
+                ) {
+                    monthlyRevenue += Number(b.total_price || 0);
+                }
+
+                const isStartToday = startDateTime.toDateString() === now.toDateString();
+                const isEndToday = endDateTime.toDateString() === now.toDateString();
+
+                // Si on a dépassé l'heure de début et on n'a pas encore dépassé l'heure de fin
+                if (now >= startDateTime && now <= endDateTime) {
+                    if (isEndToday) {
                         rentalState = 'return_today';
-                        break;
                     } else {
                         rentalState = 'rented';
-                        break;
+                    }
+                    // Do not break here because we need to calculate total monthlyRevenue for all activeBookings
+                    // Or we could break if we did a separated loop for revenue.
+                    // Let's not break!
+                }
+                
+                // Si la réservation commence aujourd'hui mais l'heure de départ n'est pas encore passée
+                if (isStartToday && now < startDateTime && rentalState === 'available') {
+                    if (isEndToday) {
+                        rentalState = 'departure_and_return_today';
+                    } else {
+                        rentalState = 'departure_today';
                     }
                 }
             }
@@ -522,8 +558,9 @@ export async function getVehicles() {
 
             return {
                 ...vehicle,
-                is_currently_rented: rentalState !== 'available',
-                current_rental_state: rentalState
+                is_currently_rented: rentalState !== 'available' && rentalState !== 'departure_today' && rentalState !== 'departure_and_return_today',
+                current_rental_state: rentalState,
+                monthly_revenue: monthlyRevenue
             };
         });
 

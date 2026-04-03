@@ -26,8 +26,8 @@ export default function VehicleForm({ initialData, onSubmit, loading, buttonText
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Initial fields (hidden but required by DB)
-    const [brand] = useState(initialData?.brand || 'Default');
-    const [model] = useState(initialData?.model || 'Default');
+    const [brand] = useState(initialData?.brand || '');
+    const [model] = useState(initialData?.model || '');
     const [regNum] = useState(initialData?.registration_number || `TEMP-${Math.random().toString(36).substring(7).toUpperCase()}`);
     
     // Pricing & Stock
