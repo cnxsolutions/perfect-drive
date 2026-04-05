@@ -14,6 +14,8 @@ async function testEmails() {
         lastname: 'Doe',
         email: 'john@example.com',
         phone: '0600000000',
+        vehicleBrand: 'TestBrand',
+        vehicleModel: 'TestModel',
         startDate: '01/01/2024',
         endDate: '05/01/2024',
         startTime: '10:00',
@@ -31,6 +33,8 @@ async function testEmails() {
     console.log('Testing CustomerReceivedTemplate...');
     const receivedHtml = await render(CustomerReceivedTemplate({
         firstname: 'John',
+        vehicleBrand: 'TestBrand',
+        vehicleModel: 'TestModel',
     }));
     console.log('CustomerReceivedTemplate rendered successfully (length: ' + receivedHtml.length + ')');
 
@@ -38,6 +42,8 @@ async function testEmails() {
     const paymentHtml = await render(CustomerPaymentLinkTemplate({
         firstname: 'John',
         paymentLink: 'https://stripe.com/pay/123',
+        vehicleBrand: 'TestBrand',
+        vehicleModel: 'TestModel',
     }));
     console.log('CustomerPaymentLinkTemplate rendered successfully (length: ' + paymentHtml.length + ')');
 
@@ -47,6 +53,8 @@ async function testEmails() {
         startDate: '01/01/2024',
         endDate: '05/01/2024',
         totalPrice: 500,
+        vehicleBrand: 'TestBrand',
+        vehicleModel: 'TestModel',
     }));
     console.log('CustomerConfirmedTemplate rendered successfully (length: ' + confirmedHtml.length + ')');
 
@@ -54,6 +62,8 @@ async function testEmails() {
     const rejectedHtml = await render(CustomerRejectedTemplate({
         firstname: 'John',
         reason: 'Vehicle unavailable',
+        vehicleBrand: 'TestBrand',
+        vehicleModel: 'TestModel',
     }));
     console.log('CustomerRejectedTemplate rendered successfully (length: ' + rejectedHtml.length + ')');
 
