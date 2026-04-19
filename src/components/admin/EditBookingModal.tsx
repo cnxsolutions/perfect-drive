@@ -21,6 +21,7 @@ export default function EditBookingModal({ booking, onClose }: EditBookingModalP
     const [availability, setAvailability] = useState<any[]>([]);
     const [minStartTime, setMinStartTime] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
+    const [manualPrice, setManualPrice] = useState<string | null>(booking.total_price.toString());
 
     // Form Data - Pre-filled
     const [formData, setFormData] = useState({
@@ -152,7 +153,7 @@ export default function EditBookingModal({ booking, onClose }: EditBookingModalP
         data.set('phone', formData.phone);
         data.set('status', formData.status);
         data.set('depositMethod', formData.depositMethod);
-        data.set('totalPrice', price.toString());
+        data.set('totalPrice', manualPrice !== null ? manualPrice : price.toString());
 
         const res = await updateAdminBooking(booking.id, data);
 
@@ -198,6 +199,7 @@ export default function EditBookingModal({ booking, onClose }: EditBookingModalP
                                         selectedEnd={calendarEnd}
                                         onRangeSelect={handleRangeSelect}
                                         availability={availability}
+                                        isAdmin={true}
                                     />
                                 ) : (
                                     <div className="flex justify-center py-10"><Loader2 className="animate-spin text-alpine" /></div>
@@ -369,8 +371,28 @@ export default function EditBookingModal({ booking, onClose }: EditBookingModalP
                                 </div>
 
                                 <div className="flex justify-between items-center border-t border-white/10 pt-4">
-                                    <span className="text-sm font-bold text-gray-300">Total Recalculé</span>
-                                    <span className="text-2xl font-oswald text-alpine font-bold">{price}€</span>
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-gray-300">Total Réservation</span>
+                                        {manualPrice !== null && (
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setManualPrice(null)} 
+                                                className="text-[10px] text-gray-500 hover:text-white text-left underline"
+                                            >
+                                                Utiliser le prix calculé ({price}€)
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <input 
+                                            type="number"
+                                            step="0.01"
+                                            value={manualPrice !== null ? manualPrice : price}
+                                            onChange={(e) => setManualPrice(e.target.value)}
+                                            className="w-24 bg-transparent border-b border-dashed border-white/30 text-right text-2xl font-oswald text-alpine font-bold focus:outline-none focus:border-alpine [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                        />
+                                        <span className="text-2xl font-oswald text-alpine font-bold">€</span>
+                                    </div>
                                 </div>
                             </div>
 

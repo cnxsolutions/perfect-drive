@@ -11,12 +11,13 @@ interface CalendarProps {
     selectedEnd: Date | null;
     onRangeSelect: (start: Date | null, end: Date | null) => void;
     availability: DateAvailability[];
+    isAdmin?: boolean;
 }
 
 const DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 
-export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, availability }: CalendarProps) {
+export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, availability, isAdmin = false }: CalendarProps) {
     const [currentDate, setCurrentDate] = useState(new Date());
 
     const getDaysInMonth = (date: Date) => {
@@ -39,7 +40,7 @@ export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, av
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        if (clickedDate < today) return;
+        if (!isAdmin && clickedDate < today) return;
 
         if (!selectedStart || (selectedStart && selectedEnd)) {
             onRangeSelect(clickedDate, null);
@@ -81,7 +82,7 @@ export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, av
 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const isPast = date < today;
+            const isPast = !isAdmin && (date < today);
 
             let isSelected = false;
             let isRange = false;
@@ -113,8 +114,6 @@ export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, av
             const isTurnoverDay = hasEndDateBooking && hasStartDateBooking;
 
             // If there are bookings but none are end dates, treat as fully blocked
-            const hasNonEndDateBookings = dateAvailability?.existingBookings.some(b => !b.isEndDate) || false;
-
             // Block only if:
             // 1. Fully blocked
             // 2. Is strictly a "Middle Day" (covered entirely)

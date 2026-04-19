@@ -598,6 +598,7 @@ export async function updateVehicle(id: string, formData: FormData) {
         const data = {
             name: formData.get('name') as string,
             trim: formData.get('trim') as string,
+            color: formData.get('color') as string,
             brand: formData.get('brand') as string,
             model: formData.get('model') as string,
             registration_number: formData.get('registration_number') as string,
