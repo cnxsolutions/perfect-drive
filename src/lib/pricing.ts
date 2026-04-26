@@ -13,7 +13,7 @@ export interface PriceResult {
 // Helper: Get rate for a single weekday
 function getWeekdayRate(mileage: MileageType, vehicle?: Vehicle): { price: number; km: number } {
     const dailyRate = Number(vehicle?.daily_rate || 60);
-    const standardLimit = vehicle?.mileage_standard_limit || 150;
+    const standardLimit = vehicle?.allow_unlimited_mileage === false ? 200 : (vehicle?.mileage_standard_limit || 150);
 
     if (mileage === 'unlimited') {
         const price = vehicle?.unlimited_rate || (dailyRate + 30);
@@ -32,7 +32,8 @@ function getWeekendPackage(days: number, mileage: MileageType, vehicle?: Vehicle
         if (mileage === 'unlimited') {
             return { price: Number(weekendUnlimitedRate), km: 0 };
         }
-        return { price: weekendRate, km: 350 };
+        const weekendLimit = vehicle?.allow_unlimited_mileage === false ? 400 : 350;
+        return { price: weekendRate, km: weekendLimit };
     }
 
     return null;

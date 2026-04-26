@@ -309,7 +309,7 @@ export default function EditBookingModal({ booking, onClose }: EditBookingModalP
                             <div className="bg-white/5 p-4 rounded-xl border border-white/5">
                                 <div className="mb-4">
                                     <label className="text-xs text-gray-400 uppercase mb-3 block">Kilométrage</label>
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className={`grid gap-3 ${booking.vehicles?.allow_unlimited_mileage !== false ? 'grid-cols-2' : 'grid-cols-1'}`}>
                                         <button
                                             type="button"
                                             onClick={() => setFormData({ ...formData, mileage: 'standard' })}
@@ -333,28 +333,30 @@ export default function EditBookingModal({ booking, onClose }: EditBookingModalP
                                             </div>
                                         </button>
 
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, mileage: 'unlimited' })}
-                                            className={`relative p-3 rounded-xl border-2 transition-all duration-300 ${formData.mileage === 'unlimited'
-                                                ? 'border-alpine bg-alpine/10 shadow-[0_0_20px_rgba(0,81,255,0.3)]'
-                                                : 'border-white/10 bg-white/5 hover:border-white/20'
-                                                }`}
-                                        >
-                                            <div className="flex flex-col items-center gap-2">
-                                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.mileage === 'unlimited' ? 'border-alpine' : 'border-white/30'
-                                                    }`}>
-                                                    {formData.mileage === 'unlimited' && (
-                                                        <div className="w-2 h-2 rounded-full bg-alpine"></div>
-                                                    )}
+                                        {booking.vehicles?.allow_unlimited_mileage !== false && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, mileage: 'unlimited' })}
+                                                className={`relative p-3 rounded-xl border-2 transition-all duration-300 ${formData.mileage === 'unlimited'
+                                                    ? 'border-alpine bg-alpine/10 shadow-[0_0_20px_rgba(0,81,255,0.3)]'
+                                                    : 'border-white/10 bg-white/5 hover:border-white/20'
+                                                    }`}
+                                            >
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.mileage === 'unlimited' ? 'border-alpine' : 'border-white/30'
+                                                        }`}>
+                                                        {formData.mileage === 'unlimited' && (
+                                                            <div className="w-2 h-2 rounded-full bg-alpine"></div>
+                                                        )}
+                                                    </div>
+                                                    <span className={`font-oswald text-xs uppercase tracking-wider ${formData.mileage === 'unlimited' ? 'text-alpine' : 'text-white'
+                                                        }`}>
+                                                        Illimité
+                                                    </span>
+                                                    <span className="text-[10px] text-gray-400">Sans limite</span>
                                                 </div>
-                                                <span className={`font-oswald text-xs uppercase tracking-wider ${formData.mileage === 'unlimited' ? 'text-alpine' : 'text-white'
-                                                    }`}>
-                                                    Illimité
-                                                </span>
-                                                <span className="text-[10px] text-gray-400">Sans limite</span>
-                                            </div>
-                                        </button>
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 

@@ -31,6 +31,7 @@ export interface Booking {
         trim?: string;
         color?: string;
         image_url?: string;
+        allow_unlimited_mileage?: boolean;
     };
 }
 

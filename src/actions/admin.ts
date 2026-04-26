@@ -270,8 +270,11 @@ export async function createAdminBooking(formData: FormData) {
                         subject: 'Votre réservation - Perfect Drive',
                         react: CustomerReceivedTemplate({
                             firstname: rawData.firstname,
-                            vehicleBrand: `${vehicle.name || 'Véhicule'} ${vehicle.trim || ''}`.replace(/Default/g, '').trim(),
-                            vehicleModel: '',
+                            vehicleName: vehicle.name || 'Véhicule',
+                            vehicleBrand: vehicle.brand || '',
+                            vehicleModel: vehicle.model || '',
+                            vehicleTrim: vehicle.trim || '',
+                            vehicleColor: vehicle.color || '',
                         }) as React.ReactElement,
                     });
                 }
@@ -451,6 +454,7 @@ export async function createVehicle(formData: FormData) {
             weekend_72h_unlimited_rate: formData.get('weekend_72h_unlimited_rate') ? parseFloat(formData.get('weekend_72h_unlimited_rate') as string) : null,
             description: formData.get('description') as string,
             is_available: formData.get('is_available') === 'true',
+            allow_unlimited_mileage: formData.get('allow_unlimited_mileage') !== 'false',
             image_url: uploadedUrls[0] || '',
             images: uploadedUrls
         };
@@ -610,6 +614,7 @@ export async function updateVehicle(id: string, formData: FormData) {
             weekend_72h_unlimited_rate: formData.get('weekend_72h_unlimited_rate') ? parseFloat(formData.get('weekend_72h_unlimited_rate') as string) : null,
             description: formData.get('description') as string,
             is_available: formData.get('is_available') === 'true',
+            allow_unlimited_mileage: formData.get('allow_unlimited_mileage') !== 'false',
             image_url: allImages[0] || '',
             images: allImages,
             updated_at: new Date().toISOString()

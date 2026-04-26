@@ -96,14 +96,22 @@ export default function VehicleList({ vehicles, onRefresh }: VehicleListProps) {
                                     <div className="flex items-center gap-2">
                                         <span className="w-8 text-gray-600 font-mono text-[10px]">24H</span>
                                         <span className="text-gray-300 w-8">{vehicle.daily_rate}€</span>
-                                        <span className="text-gray-700">/</span>
-                                        <span className="text-white font-medium">{vehicle.unlimited_rate || (vehicle.daily_rate + 30)}€</span>
+                                        {vehicle.allow_unlimited_mileage !== false && (
+                                            <>
+                                                <span className="text-gray-700">/</span>
+                                                <span className="text-white font-medium">{vehicle.unlimited_rate || (vehicle.daily_rate + 30)}€</span>
+                                            </>
+                                        )}
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <span className="w-8 text-gray-600 font-mono text-[10px]">48H</span>
                                         <span className="text-gray-300 w-8">{vehicle.weekend_rate || 0}€</span>
-                                        <span className="text-gray-700">/</span>
-                                        <span className="text-white font-medium">{vehicle.weekend_unlimited_rate || ((vehicle.weekend_rate || 0) + 50)}€</span>
+                                        {vehicle.allow_unlimited_mileage !== false && (
+                                            <>
+                                                <span className="text-gray-700">/</span>
+                                                <span className="text-white font-medium">{vehicle.weekend_unlimited_rate || ((vehicle.weekend_rate || 0) + 50)}€</span>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
 

@@ -26,6 +26,7 @@ export interface Vehicle {
     weekend_unlimited_rate?: number;
     is_currently_rented?: boolean; // Attribut dynamique pour l'administration
     current_rental_state?: 'available' | 'rented' | 'departure_today' | 'return_today' | 'departure_and_return_today';
+    allow_unlimited_mileage?: boolean;
 }
 
 export interface CreateVehicleDTO {

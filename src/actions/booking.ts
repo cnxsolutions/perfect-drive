@@ -171,9 +171,11 @@ export async function createBookingAction(formData: FormData) {
                     hasLicenseDocument: !!filePaths.license,
                     hasProofDocument: !!filePaths.proof,
                     customerMessage: rawData.message,
+                    vehicleName: vehicle.name,
                     vehicleBrand: vehicle.brand,
                     vehicleModel: vehicle.model,
                     vehicleTrim: vehicle.trim,
+                    vehicleColor: vehicle.color,
                 }) as React.ReactElement,
             });
 
@@ -184,8 +186,11 @@ export async function createBookingAction(formData: FormData) {
                 subject: 'Votre demande de location - Perfect Drive',
                 react: CustomerReceivedTemplate({
                     firstname: rawData.firstname,
+                    vehicleName: vehicle.name,
                     vehicleBrand: vehicle.brand,
                     vehicleModel: vehicle.model,
+                    vehicleTrim: vehicle.trim,
+                    vehicleColor: vehicle.color,
                 }) as React.ReactElement,
             });
         } catch (emailError) {

@@ -27,7 +27,7 @@ export default function BookingForm({ startDate, endDate, startTime, endTime, ve
     // Initial rates based on vehicle
     const baseDaily = vehicle?.daily_rate || 60;
     const baseUnlimited = vehicle?.unlimited_rate || (baseDaily + 30);
-    const kmStandard = vehicle?.mileage_standard_limit || 150;
+    const kmStandard = vehicle?.allow_unlimited_mileage === false ? 200 : (vehicle?.mileage_standard_limit || 150);
 
     // Files
     const [files, setFiles] = useState<{ id: File | null; license: File | null; proof: File | null }>({
@@ -55,7 +55,8 @@ export default function BookingForm({ startDate, endDate, startTime, endTime, ve
 
         setPrice(error ? "--" : totalPrice);
         setKmLimit(error ? "Indisponible" : limit);
-        setStandardKmLimitStr(isWeekendPkg ? '350 km / week-end' : `${kmStandard} km/jour`);
+        const weekendPkgKm = vehicle?.allow_unlimited_mileage === false ? 400 : 350;
+        setStandardKmLimitStr(isWeekendPkg ? `${weekendPkgKm} km / week-end` : `${kmStandard} km/jour`);
         setAlertMessage(error);
 
     }, [startDate, endDate, mileage, vehicle, baseDaily, baseUnlimited, kmStandard]);
@@ -164,7 +165,7 @@ export default function BookingForm({ startDate, endDate, startTime, endTime, ve
                     </h3>
                     <div>
                         <label className="block text-xs lg:text-sm font-oswald uppercase tracking-widest mb-3 text-gray-400 text-center lg:text-left">Kilométrage</label>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className={`grid gap-3 ${vehicle?.allow_unlimited_mileage !== false ? 'grid-cols-2' : 'grid-cols-1'}`}>
                             {/* Limité Option */}
                             <button
                                 type="button"
@@ -191,28 +192,30 @@ export default function BookingForm({ startDate, endDate, startTime, endTime, ve
                             </button>
 
                             {/* Illimité Option */}
-                            <button
-                                type="button"
-                                onClick={() => setMileage('unlimited')}
-                                className={`relative p-4 rounded-xl border-2 transition-all duration-300 ${mileage === 'unlimited'
-                                    ? 'border-alpine bg-alpine/10 shadow-[0_0_20px_rgba(0,81,255,0.3)]'
-                                    : 'border-white/10 bg-white/5 hover:border-white/20'
-                                    }`}
-                            >
-                                <div className="flex flex-col items-center gap-2">
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${mileage === 'unlimited' ? 'border-alpine' : 'border-white/30'
-                                        }`}>
-                                        {mileage === 'unlimited' && (
-                                            <div className="w-3 h-3 rounded-full bg-alpine"></div>
-                                        )}
+                            {vehicle?.allow_unlimited_mileage !== false && (
+                                <button
+                                    type="button"
+                                    onClick={() => setMileage('unlimited')}
+                                    className={`relative p-4 rounded-xl border-2 transition-all duration-300 ${mileage === 'unlimited'
+                                        ? 'border-alpine bg-alpine/10 shadow-[0_0_20px_rgba(0,81,255,0.3)]'
+                                        : 'border-white/10 bg-white/5 hover:border-white/20'
+                                        }`}
+                                >
+                                    <div className="flex flex-col items-center gap-2">
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${mileage === 'unlimited' ? 'border-alpine' : 'border-white/30'
+                                            }`}>
+                                            {mileage === 'unlimited' && (
+                                                <div className="w-3 h-3 rounded-full bg-alpine"></div>
+                                            )}
+                                        </div>
+                                        <span className={`font-oswald text-sm uppercase tracking-wider ${mileage === 'unlimited' ? 'text-alpine' : 'text-white'
+                                            }`}>
+                                            Illimité
+                                        </span>
+                                        <span className="text-xs text-gray-400">Sans limite</span>
                                     </div>
-                                    <span className={`font-oswald text-sm uppercase tracking-wider ${mileage === 'unlimited' ? 'text-alpine' : 'text-white'
-                                        }`}>
-                                        Illimité
-                                    </span>
-                                    <span className="text-xs text-gray-400">Sans limite</span>
-                                </div>
-                            </button>
+                                </button>
+                            )}
                         </div>
                     </div>
 

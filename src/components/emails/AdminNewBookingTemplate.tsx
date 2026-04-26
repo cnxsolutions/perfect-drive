@@ -19,9 +19,11 @@ interface AdminNewBookingTemplateProps {
     hasLicenseDocument: boolean;
     hasProofDocument: boolean;
     customerMessage?: string;
+    vehicleName: string;
     vehicleBrand: string;
     vehicleModel: string;
     vehicleTrim?: string;
+    vehicleColor?: string;
 }
 
 export const AdminNewBookingTemplate = ({
@@ -40,9 +42,11 @@ export const AdminNewBookingTemplate = ({
     hasLicenseDocument,
     hasProofDocument,
     customerMessage,
+    vehicleName,
     vehicleBrand,
     vehicleModel,
     vehicleTrim,
+    vehicleColor,
 }: AdminNewBookingTemplateProps) => {
     return (
         <EmailLayout preview={`Nouvelle demande de ${firstname} ${lastname}`}>
@@ -69,7 +73,7 @@ export const AdminNewBookingTemplate = ({
             {/* Booking Info */}
             <Text style={sectionTitleStyle}>Véhicule & Réservation</Text>
             <Text style={infoTextStyle}>
-                <strong>Véhicule :</strong> {vehicleBrand} {vehicleModel} {vehicleTrim && `(${vehicleTrim})`}<br />
+                <strong>Véhicule :</strong> {vehicleName} - {vehicleBrand} {vehicleModel} {vehicleTrim && `(${vehicleTrim})`} {vehicleColor && `- ${vehicleColor}`}<br />
                 <strong>Départ :</strong> {startDate} {startTime && `à ${startTime}`}<br />
                 <strong>Retour :</strong> {endDate} {endTime && `à ${endTime}`}<br />
                 <strong>Kilométrage :</strong> {mileage === 'unlimited' ? 'Illimité' : 'Standard'}<br />

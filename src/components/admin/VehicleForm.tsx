@@ -17,6 +17,7 @@ export default function VehicleForm({ initialData, onSubmit, loading, buttonText
     const [trim, setTrim] = useState(initialData?.trim || '');
     const [color, setColor] = useState(initialData?.color || '');
     const [description, setDescription] = useState(initialData?.description || '');
+    const [allowUnlimitedMileage, setAllowUnlimitedMileage] = useState(initialData?.allow_unlimited_mileage ?? true);
     
     // Images state
     const [existingImages, setExistingImages] = useState<string[]>(initialData?.images || []);
@@ -78,6 +79,7 @@ export default function VehicleForm({ initialData, onSubmit, loading, buttonText
         formData.append('weekend_rate', weekendRate);
         formData.append('weekend_unlimited_rate', weekendUnlimitedRate);
         formData.append('is_available', 'true');
+        formData.append('allow_unlimited_mileage', allowUnlimitedMileage.toString());
         
         // Send list of existing images to keep
         formData.append('existingImages', JSON.stringify(existingImages));
@@ -146,7 +148,7 @@ export default function VehicleForm({ initialData, onSubmit, loading, buttonText
             </div>
 
             {/* Pricing Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-white/5 rounded-3xl border border-white/10">
+            <div className={`grid grid-cols-1 gap-6 p-6 bg-white/5 rounded-3xl border border-white/10 ${allowUnlimitedMileage ? 'md:grid-cols-2' : 'max-w-2xl'}`}>
                 <div>
                     <Label>Prix Semaine (Standard)</Label>
                     <div className="relative">
@@ -159,20 +161,22 @@ export default function VehicleForm({ initialData, onSubmit, loading, buttonText
                     </div>
                 </div>
 
-                <div>
-                    <Label>Prix Semaine (Illimité)</Label>
-                    <div className="relative">
-                        <input
-                            type="number" step="0.01" required
-                            value={unlimitedRate} onChange={(e) => setUnlimitedRate(e.target.value)}
-                            className="w-full p-4 glass-input rounded-2xl text-lg font-bold text-alpine focus:ring-2 focus:ring-alpine/50 pr-12"
-                        />
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-oswald text-xs">€/J</div>
+                {allowUnlimitedMileage && (
+                    <div>
+                        <Label>Prix Semaine (Illimité)</Label>
+                        <div className="relative">
+                            <input
+                                type="number" step="0.01" required
+                                value={unlimitedRate} onChange={(e) => setUnlimitedRate(e.target.value)}
+                                className="w-full p-4 glass-input rounded-2xl text-lg font-bold text-alpine focus:ring-2 focus:ring-alpine/50 pr-12"
+                            />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-oswald text-xs">€/J</div>
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <div>
-                    <Label>Prix Week-end (48h Standard)</Label>
+                    <Label>Prix Week-end {allowUnlimitedMileage ? '(48h Standard)' : '(48h)'}</Label>
                     <div className="relative">
                         <input
                             type="number" step="0.01" required
@@ -183,17 +187,37 @@ export default function VehicleForm({ initialData, onSubmit, loading, buttonText
                     </div>
                 </div>
 
-                <div>
-                    <Label>Prix Week-end (48h Illimité)</Label>
-                    <div className="relative">
-                        <input
-                            type="number" step="0.01" required
-                            value={weekendUnlimitedRate} onChange={(e) => setWeekendUnlimitedRate(e.target.value)}
-                            className="w-full p-4 glass-input rounded-2xl text-lg font-bold text-alpine focus:ring-2 focus:ring-alpine/50 pr-12"
-                        />
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-oswald text-xs">€/TOT</div>
+                {allowUnlimitedMileage && (
+                    <div>
+                        <Label>Prix Week-end (48h Illimité)</Label>
+                        <div className="relative">
+                            <input
+                                type="number" step="0.01" required
+                                value={weekendUnlimitedRate} onChange={(e) => setWeekendUnlimitedRate(e.target.value)}
+                                className="w-full p-4 glass-input rounded-2xl text-lg font-bold text-alpine focus:ring-2 focus:ring-alpine/50 pr-12"
+                            />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-oswald text-xs">€/TOT</div>
+                        </div>
                     </div>
-                </div>
+                )}
+            </div>
+
+            {/* Options */}
+            <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
+                <label className="flex items-center gap-3 cursor-pointer">
+                    <div className={`w-12 h-6 rounded-full transition-colors relative ${allowUnlimitedMileage ? 'bg-alpine' : 'bg-gray-600'}`}>
+                        <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${allowUnlimitedMileage ? 'translate-x-6' : 'translate-x-0'}`} />
+                    </div>
+                    <input 
+                        type="checkbox" className="hidden"
+                        checked={allowUnlimitedMileage}
+                        onChange={(e) => setAllowUnlimitedMileage(e.target.checked)}
+                    />
+                    <div className="flex flex-col">
+                        <span className="text-white font-bold text-sm tracking-wide">Proposer le Kilométrage Illimité</span>
+                        <span className="text-gray-400 text-xs text-balance max-w-sm">Désactivez cette option pour ne pas proposer et masquer les tarifs "Illimité" sur ce véhicule, sur le site public comme en Admin.</span>
+                    </div>
+                </label>
             </div>
 
             {/* Image Upload Zone */}

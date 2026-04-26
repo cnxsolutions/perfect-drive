@@ -4,14 +4,20 @@ import { EmailLayout } from './EmailLayout';
 
 interface CustomerReceivedTemplateProps {
     firstname: string;
+    vehicleName: string;
     vehicleBrand: string;
     vehicleModel: string;
+    vehicleTrim?: string;
+    vehicleColor?: string;
 }
 
 export const CustomerReceivedTemplate = ({
     firstname,
+    vehicleName,
     vehicleBrand,
     vehicleModel,
+    vehicleTrim,
+    vehicleColor,
 }: CustomerReceivedTemplateProps) => {
     return (
         <EmailLayout preview={`Votre demande est bien reçue, ${firstname} !`}>
@@ -24,7 +30,7 @@ export const CustomerReceivedTemplate = ({
             </Text>
 
             <Text style={paragraphStyle}>
-                Nous avons bien reçu votre demande de location pour le véhicule <strong>{vehicleBrand} {vehicleModel}</strong> chez <strong>Perfect Drive</strong>.
+                Nous avons bien reçu votre demande de location pour le véhicule <strong>{vehicleName} ({vehicleBrand} {vehicleModel} {vehicleTrim && `- ${vehicleTrim}`} {vehicleColor && `- ${vehicleColor}`})</strong> chez <strong>Perfect Drive</strong>.
             </Text>
 
             <Hr style={dividerStyle} />
