@@ -27,6 +27,8 @@ export interface Vehicle {
     is_currently_rented?: boolean; // Attribut dynamique pour l'administration
     current_rental_state?: 'available' | 'rented' | 'departure_today' | 'return_today' | 'departure_and_return_today';
     allow_unlimited_mileage?: boolean;
+    deposit_amount?: number;
+    accounting_cycle_day?: number;
 }
 
 export interface CreateVehicleDTO {

@@ -36,6 +36,8 @@ export default function VehicleForm({ initialData, onSubmit, loading, buttonText
     const [unlimitedRate, setUnlimitedRate] = useState(initialData?.unlimited_rate?.toString() || '130');
     const [weekendRate, setWeekendRate] = useState(initialData?.weekend_rate?.toString() || '150');
     const [weekendUnlimitedRate, setWeekendUnlimitedRate] = useState(initialData?.weekend_unlimited_rate?.toString() || '200');
+    const [depositAmount, setDepositAmount] = useState(initialData?.deposit_amount?.toString() || '700');
+    const [accountingCycleDay, setAccountingCycleDay] = useState(initialData?.accounting_cycle_day?.toString() || '26');
 
     useEffect(() => {
         // Create previews for new files
@@ -80,6 +82,8 @@ export default function VehicleForm({ initialData, onSubmit, loading, buttonText
         formData.append('weekend_unlimited_rate', weekendUnlimitedRate);
         formData.append('is_available', 'true');
         formData.append('allow_unlimited_mileage', allowUnlimitedMileage.toString());
+        formData.append('deposit_amount', depositAmount);
+        formData.append('accounting_cycle_day', accountingCycleDay);
         
         // Send list of existing images to keep
         formData.append('existingImages', JSON.stringify(existingImages));
@@ -132,8 +136,18 @@ export default function VehicleForm({ initialData, onSubmit, loading, buttonText
                     />
                 </div>
                 
-                {/* Registration Number (Hidden previously, but let's just make it hidden div to keep grid balance or just leave empty div) */}
-                <div />
+                {/* Deposit Amount */}
+                <div>
+                    <Label>Montant de la Caution</Label>
+                    <div className="relative">
+                        <input
+                            type="number" placeholder="ex: 700" required
+                            value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)}
+                            className="w-full p-4 glass-input rounded-2xl text-lg font-bold text-white tracking-tight focus:ring-2 focus:ring-alpine/50 pr-12"
+                        />
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-oswald text-xs">€</div>
+                    </div>
+                </div>
             </div>
 
             {/* Description */}
@@ -203,21 +217,38 @@ export default function VehicleForm({ initialData, onSubmit, loading, buttonText
             </div>
 
             {/* Options */}
-            <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
-                <label className="flex items-center gap-3 cursor-pointer">
-                    <div className={`w-12 h-6 rounded-full transition-colors relative ${allowUnlimitedMileage ? 'bg-alpine' : 'bg-gray-600'}`}>
-                        <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${allowUnlimitedMileage ? 'translate-x-6' : 'translate-x-0'}`} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-white/5 rounded-3xl border border-white/10 mt-8">
+                {/* Options */}
+                <div>
+                    <Label>Options Générales</Label>
+                    <label className="flex items-center gap-3 mt-4 cursor-pointer group">
+                        <div className="relative">
+                            <input
+                                type="checkbox"
+                                checked={allowUnlimitedMileage}
+                                onChange={(e) => setAllowUnlimitedMileage(e.target.checked)}
+                                className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-alpine"></div>
+                        </div>
+                        <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">
+                            Activer le "Kilométrage Illimité"
+                        </span>
+                    </label>
+                </div>
+                
+                {/* Accounting Cycle */}
+                <div>
+                    <Label>Jour comptable (CA Mensuel)</Label>
+                    <div className="relative mt-2">
+                        <input
+                            type="number" min="1" max="31" required
+                            value={accountingCycleDay} onChange={(e) => setAccountingCycleDay(e.target.value)}
+                            className="w-full p-4 glass-input rounded-2xl text-lg font-bold text-alpine focus:ring-2 focus:ring-alpine/50 pr-8"
+                        />
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-oswald text-xs uppercase">du mois</div>
                     </div>
-                    <input 
-                        type="checkbox" className="hidden"
-                        checked={allowUnlimitedMileage}
-                        onChange={(e) => setAllowUnlimitedMileage(e.target.checked)}
-                    />
-                    <div className="flex flex-col">
-                        <span className="text-white font-bold text-sm tracking-wide">Proposer le Kilométrage Illimité</span>
-                        <span className="text-gray-400 text-xs text-balance max-w-sm">Désactivez cette option pour ne pas proposer et masquer les tarifs "Illimité" sur ce véhicule, sur le site public comme en Admin.</span>
-                    </div>
-                </label>
+                </div>
             </div>
 
             {/* Image Upload Zone */}

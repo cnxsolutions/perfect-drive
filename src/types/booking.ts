@@ -32,6 +32,7 @@ export interface Booking {
         color?: string;
         image_url?: string;
         allow_unlimited_mileage?: boolean;
+        deposit_amount?: number;
     };
 }
 

@@ -429,7 +429,7 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
                                             onClick={() => setIsDepositMenuOpen(!isDepositMenuOpen)}
                                             className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs text-white flex justify-between items-center hover:bg-white/10 transition-all ${isDepositMenuOpen ? 'border-alpine' : ''}`}
                                         >
-                                            {formData.depositMethod === 'imprint' ? 'Empreinte CB' : 'Espèces (700€)'}
+                                            {formData.depositMethod === 'imprint' ? 'Empreinte CB' : `Espèces (${selectedVehicle?.deposit_amount || 700}€)`}
                                             <ChevronDown className={`w-3 h-3 text-alpine/50 transition-transform ${isDepositMenuOpen ? 'rotate-180' : ''}`} />
                                         </button>
 
@@ -439,7 +439,7 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
                                                 <div className="absolute bottom-full mb-2 left-0 right-0 bg-darkbg/95 border border-white/10 backdrop-blur-xl rounded-xl overflow-hidden shadow-2xl z-20 animate-scale-in">
                                                     {[
                                                         { id: 'imprint', label: 'Empreinte CB' },
-                                                        { id: 'cash', label: 'Espèces (700€)' }
+                                                        { id: 'cash', label: `Espèces (${selectedVehicle?.deposit_amount || 700}€)` }
                                                     ].map(opt => (
                                                         <button
                                                             key={opt.id}

@@ -237,7 +237,7 @@ export default function BookingForm({ startDate, endDate, startTime, endTime, ve
 
                     {/* Deposit Method */}
                     <div className="mt-2">
-                        <label className="block text-xs lg:text-sm font-oswald uppercase tracking-widest mb-2 text-gray-400 text-center lg:text-left">Mode de Dépôt de Garantie (700€)</label>
+                        <label className="block text-xs lg:text-sm font-oswald uppercase tracking-widest mb-2 text-gray-400 text-center lg:text-left">Mode de Dépôt de Garantie ({vehicle?.deposit_amount || 700}€)</label>
                         <div className="grid grid-cols-2 gap-3">
                             <label className="cursor-pointer">
                                 <input type="radio" name="deposit_method" value="imprint" className="peer hidden" defaultChecked />

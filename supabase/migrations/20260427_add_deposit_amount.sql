@@ -1,0 +1,1 @@
+ALTER TABLE vehicles ADD COLUMN deposit_amount INTEGER DEFAULT 700;

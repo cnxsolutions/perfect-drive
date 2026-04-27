@@ -368,7 +368,7 @@ export default function EditBookingModal({ booking, onClose }: EditBookingModalP
                                         className="bg-black/50 border border-white/10 rounded px-2 py-1 text-xs text-white"
                                     >
                                         <option value="imprint">Empreinte CB</option>
-                                        <option value="cash">Espèces (700€)</option>
+                                        <option value="cash">Espèces ({booking.vehicles?.deposit_amount || 700}€)</option>
                                     </select>
                                 </div>
 

@@ -229,7 +229,7 @@ export default function BookingCard({ booking }: { booking: Booking }) {
                             <CreditCard className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
                         )}
                         <div className="flex-1 min-w-0">
-                            <p className="text-[10px] text-gray-500 uppercase tracking-wider">Caution (700€)</p>
+                            <p className="text-[10px] text-gray-500 uppercase tracking-wider">Caution ({booking.vehicles?.deposit_amount || 700}€)</p>
                             <p className="text-white font-medium">
                                 {booking.deposit_method === 'cash' ? 'Espèces' : 'Empreinte CB'}
                             </p>

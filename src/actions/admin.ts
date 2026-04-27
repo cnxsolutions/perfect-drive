@@ -455,6 +455,8 @@ export async function createVehicle(formData: FormData) {
             description: formData.get('description') as string,
             is_available: formData.get('is_available') === 'true',
             allow_unlimited_mileage: formData.get('allow_unlimited_mileage') !== 'false',
+            deposit_amount: formData.get('deposit_amount') ? parseInt(formData.get('deposit_amount') as string, 10) : 700,
+            accounting_cycle_day: formData.get('accounting_cycle_day') ? parseInt(formData.get('accounting_cycle_day') as string, 10) : 26,
             image_url: uploadedUrls[0] || '',
             images: uploadedUrls
         };
@@ -497,17 +499,19 @@ export async function getVehicles() {
 
         // Calcul du statut en temps réel incluant les heures d'arrivée et départ
         const now = new Date();
-        // Determine the start and end of the current accounting period (from 26th to 26th)
-        let periodStart = new Date(now.getFullYear(), now.getMonth(), 26, 0, 0, 0);
-        let periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 26, 0, 0, 0);
-
-        if (now.getDate() < 26) {
-            periodStart = new Date(now.getFullYear(), now.getMonth() - 1, 26, 0, 0, 0);
-            periodEnd = new Date(now.getFullYear(), now.getMonth(), 26, 0, 0, 0);
-        }
         
         const enrichedVehicles = vehicles?.map((vehicle: any) => {
             const activeBookings = vehicle.bookings || [];
+            
+            // Determine the start and end of the accounting period for this specific vehicle
+            const cycleDay = vehicle.accounting_cycle_day || 26;
+            let periodStart = new Date(now.getFullYear(), now.getMonth(), cycleDay, 0, 0, 0);
+            let periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, cycleDay, 0, 0, 0);
+
+            if (now.getDate() < cycleDay) {
+                periodStart = new Date(now.getFullYear(), now.getMonth() - 1, cycleDay, 0, 0, 0);
+                periodEnd = new Date(now.getFullYear(), now.getMonth(), cycleDay, 0, 0, 0);
+            }
             
             let rentalState = 'available';
             let monthlyRevenue = 0;
@@ -615,6 +619,8 @@ export async function updateVehicle(id: string, formData: FormData) {
             description: formData.get('description') as string,
             is_available: formData.get('is_available') === 'true',
             allow_unlimited_mileage: formData.get('allow_unlimited_mileage') !== 'false',
+            deposit_amount: formData.get('deposit_amount') ? parseInt(formData.get('deposit_amount') as string, 10) : 700,
+            accounting_cycle_day: formData.get('accounting_cycle_day') ? parseInt(formData.get('accounting_cycle_day') as string, 10) : 26,
             image_url: allImages[0] || '',
             images: allImages,
             updated_at: new Date().toISOString()

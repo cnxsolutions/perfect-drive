@@ -121,7 +121,7 @@ export default function VehicleList({ vehicles, onRefresh }: VehicleListProps) {
                                         <span className="text-[10px] text-alpine font-bold font-mono">CA:</span>
                                         <span className="text-sm font-bold text-white">{(vehicle as any).monthly_revenue || 0}€</span>
                                     </div>
-                                    <span className="text-[8px] text-gray-500 mt-1 uppercase tracking-wider">Mois (26 au 26)</span>
+                                    <span className="text-[8px] text-gray-500 mt-1 uppercase tracking-wider">Mois ({(vehicle as any).accounting_cycle_day || 26} au {(vehicle as any).accounting_cycle_day || 26})</span>
                                 </div>
 
                                 {/* Disponibilité / Statut */}
