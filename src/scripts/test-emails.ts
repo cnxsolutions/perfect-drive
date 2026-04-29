@@ -15,6 +15,7 @@ async function testEmails() {
         email: 'john@example.com',
         phone: '0600000000',
         vehicleBrand: 'TestBrand',
+        vehicleName: 'TestName',
         vehicleModel: 'TestModel',
         startDate: '01/01/2024',
         endDate: '05/01/2024',
@@ -33,6 +34,7 @@ async function testEmails() {
     console.log('Testing CustomerReceivedTemplate...');
     const receivedHtml = await render(CustomerReceivedTemplate({
         firstname: 'John',
+        vehicleName: 'TestName',
         vehicleBrand: 'TestBrand',
         vehicleModel: 'TestModel',
     }));
