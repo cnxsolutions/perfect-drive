@@ -51,7 +51,15 @@ const VehicleAccordion = ({ vehicle, bookings, type }: { vehicle: Vehicle | unde
 
     const groupedByMonth = useMemo(() => {
         const acc: Record<string, Booking[]> = {};
-        bookings.forEach(b => {
+        
+        // Sort bookings strictly chronologically (most recent to oldest)
+        const sortedBookings = [...bookings].sort((a, b) => {
+            const dateA = new Date(`${a.start_date}T${a.start_time || '00:00'}`);
+            const dateB = new Date(`${b.start_date}T${b.start_time || '00:00'}`);
+            return dateB.getTime() - dateA.getTime();
+        });
+
+        sortedBookings.forEach(b => {
              const m = b.start_date ? b.start_date.substring(0, 7) : 'unknown';
              if (!acc[m]) acc[m] = [];
              acc[m].push(b);
@@ -134,7 +142,7 @@ export default function DashboardClient({ initialBookings, vehicles }: Dashboard
 
     const pendingBookings = filteredBookings.filter(b => b.status === 'pending');
     const awaitingPaymentBookings = filteredBookings.filter(b => b.status === 'awaiting_payment');
-    const approvedBookings = filteredBookings.filter(b => b.status === 'approved');
+    const approvedBookings = filteredBookings.filter(b => b.status === 'approved' || b.status === 'paid');
     const rejectedBookings = filteredBookings.filter(b => b.status === 'rejected');
 
     const currentVehicle = vehicles.find(v => v.id === selectedVehicleId);

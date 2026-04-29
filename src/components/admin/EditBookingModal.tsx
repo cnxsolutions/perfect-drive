@@ -22,6 +22,7 @@ export default function EditBookingModal({ booking, onClose }: EditBookingModalP
     const [minStartTime, setMinStartTime] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
     const [manualPrice, setManualPrice] = useState<string | null>(booking.total_price.toString());
+    const [vehiclesList, setVehiclesList] = useState<any[]>([]);
 
     // Form Data - Pre-filled
     const [formData, setFormData] = useState({
@@ -38,15 +39,24 @@ export default function EditBookingModal({ booking, onClose }: EditBookingModalP
         status: booking.status,
         depositMethod: (booking.deposit_method as 'imprint' | 'cash') || 'imprint',
         totalPrice: booking.total_price.toString(),
+        vehicle_id: booking.vehicle_id || '',
     });
 
     // Handle hydration mismatch
     useEffect(() => {
         setMounted(true);
         const fetchAvailability = async () => {
-            const dates = await import('@/actions/booking').then(mod => mod.getBookingAvailability());
+            const dates = await import('@/actions/booking').then(mod => mod.getBookingAvailability(formData.vehicle_id));
             setAvailability(dates);
         };
+        const fetchVehicles = async () => {
+            const res = await import('@/actions/admin').then(mod => mod.getVehicles());
+            if (res.success && res.vehicles) {
+                setVehiclesList(res.vehicles);
+            }
+        };
+        
+        fetchVehicles();
         fetchAvailability();
 
         // Prevent body scroll when modal is open
@@ -56,6 +66,17 @@ export default function EditBookingModal({ booking, onClose }: EditBookingModalP
             setMounted(false);
         };
     }, []);
+
+    // Re-fetch availability when vehicle changes
+    useEffect(() => {
+        if (mounted && formData.vehicle_id) {
+            const fetchAvailability = async () => {
+                const dates = await import('@/actions/booking').then(mod => mod.getBookingAvailability(formData.vehicle_id));
+                setAvailability(dates);
+            };
+            fetchAvailability();
+        }
+    }, [formData.vehicle_id, mounted]);
 
     // Calculate price as derived state
     const price = (formData.startDate && formData.endDate)
@@ -244,6 +265,27 @@ export default function EditBookingModal({ booking, onClose }: EditBookingModalP
                     {/* Right Panel: Form */}
                     <div className="w-full lg:w-1/2 p-6 overflow-y-auto">
                         <form id="edit-booking-form" onSubmit={handleSubmit} className="space-y-6">
+
+                            {/* Vehicle Selection */}
+                            <div className="space-y-4">
+                                <h4 className="text-alpine text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                                    <CalendarIcon className="w-3 h-3" /> Véhicule
+                                </h4>
+                                <select
+                                    required
+                                    value={formData.vehicle_id}
+                                    onChange={e => setFormData({ ...formData, vehicle_id: e.target.value })}
+                                    className="w-full p-3 glass-input rounded-lg text-sm bg-black/50 text-white border border-white/10"
+                                >
+                                    <option value="" disabled>Sélectionner un véhicule</option>
+                                    {vehiclesList.map(v => (
+                                        <option key={v.id} value={v.id}>
+                                            {`${v.name} ${v.trim ? `- ${v.trim}` : ''}`.trim() || `${v.brand} ${v.model}`.trim()}
+                                        </option>
+                                    ))}
+                                </select>
+                                <input type="hidden" name="vehicle_id" value={formData.vehicle_id} />
+                            </div>
 
                             {/* Client */}
                             <div className="space-y-4">

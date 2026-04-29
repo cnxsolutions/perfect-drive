@@ -368,8 +368,11 @@ export async function updateAdminBooking(bookingId: string, formData: FormData) 
             customer_phone: rawData.phone,
             customer_address: rawData.address,
             deposit_method: rawData.depositMethod,
-            vehicle_id: rawData.vehicleId,
         };
+
+        if (rawData.vehicleId) {
+            updateData.vehicle_id = rawData.vehicleId;
+        }
 
         // Only update document paths if new files were uploaded
         if (filePaths.idCard) updateData.document_id_card = filePaths.idCard;

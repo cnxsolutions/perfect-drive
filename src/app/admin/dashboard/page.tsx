@@ -19,7 +19,7 @@ export default async function AdminDashboard() {
     const { data: bookings } = await supabase
         .from('bookings')
         .select('*, vehicles(*)')
-        .order('created_at', { ascending: false });
+        .order('start_date', { ascending: false });
 
     return (
         <div className="min-h-screen bg-darkbg text-white font-montserrat p-6 md:p-10">
