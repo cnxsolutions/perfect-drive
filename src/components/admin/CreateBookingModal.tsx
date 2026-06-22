@@ -13,8 +13,10 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [availability, setAvailability] = useState<any[]>([]);
+    const [availabilityLoaded, setAvailabilityLoaded] = useState(false);
     const [minStartTime, setMinStartTime] = useState<string | null>(null);
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    const [vehiclesLoaded, setVehiclesLoaded] = useState(false);
     const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
     const [isVehicleMenuOpen, setIsVehicleMenuOpen] = useState(false);
     const [isDepositMenuOpen, setIsDepositMenuOpen] = useState(false);
@@ -48,6 +50,7 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
                     setSelectedVehicle(res.vehicles[0]);
                 }
             }
+            setVehiclesLoaded(true);
         };
         loadVehicles();
     }, []);
@@ -55,10 +58,12 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
     // Fetch availability when vehicle changes
     useEffect(() => {
         if (!formData.vehicle_id) return;
-        
+
+        setAvailabilityLoaded(false);
         const fetchAvailability = async () => {
             const dates = await import('@/actions/booking').then(mod => mod.getBookingAvailability(formData.vehicle_id));
             setAvailability(dates);
+            setAvailabilityLoaded(true);
         };
         fetchAvailability();
     }, [formData.vehicle_id]);
@@ -202,8 +207,7 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
                         {/* Import Calendar dynamically or assuming it's imported at top */}
                         <div className="scale-90 origin-top-left w-full">
                             <div className="mb-6">
-                                {/* Only render if availability is loaded to avoid jump */}
-                                {availability.length > 0 ? (
+                                {availabilityLoaded ? (
                                     <Calendar
                                         selectedStart={calendarStart}
                                         selectedEnd={calendarEnd}
@@ -279,7 +283,11 @@ export default function CreateBookingModal({ onClose }: { onClose: () => void })
                                             {/* Backdrop to close click-outside overlay style */}
                                             <div className="fixed inset-0 z-10" onClick={() => setIsVehicleMenuOpen(false)}></div>
                                             <div className="absolute top-full left-0 right-0 mt-2 bg-darkbg/90 border border-white/10 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl z-20 animate-scale-in">
-                                                {vehicles.map(v => (
+                                                {!vehiclesLoaded ? (
+                                                    <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-alpine" /></div>
+                                                ) : vehicles.length === 0 ? (
+                                                    <div className="p-4 text-center text-sm text-gray-500">Aucun véhicule disponible</div>
+                                                ) : vehicles.map(v => (
                                                     <button
                                                         key={v.id}
                                                         type="button"
