@@ -79,7 +79,7 @@ const VehicleAccordion = ({ vehicle, bookings, type }: { vehicle: Vehicle | unde
                     </div>
                     <div>
                         <h3 className="text-lg font-oswald uppercase text-white truncate">
-                            {vehicle ? `${vehicle.name} ${vehicle.trim ? `- ${vehicle.trim}` : ''} ${vehicle.color ? `- ${vehicle.color}` : ''}` : 'Véhicule Inconnu'}
+                            {vehicle ? `${vehicle.name || 'Sans nom'} ${vehicle.trim ? `- ${vehicle.trim}` : ''} ${vehicle.color ? `- ${vehicle.color}` : ''}` : 'Véhicule Inconnu'}
                         </h3>
                         <p className="text-xs text-gray-400 font-montserrat mt-1">{bookings.length} réservation(s)</p>
                     </div>
@@ -149,7 +149,7 @@ export default function DashboardClient({ initialBookings, vehicles }: Dashboard
 
     const getVehicleDisplay = (v: Vehicle | undefined) => {
         if (!v) return 'Véhicule Inconnu';
-        return `${v.name} ${v.trim ? `- ${v.trim}` : ''} ${v.color ? `- ${v.color}` : ''}`;
+        return `${v.name || 'Sans nom'} ${v.trim ? `- ${v.trim}` : ''} ${v.color ? `- ${v.color}` : ''}`;
     };
 
     return (

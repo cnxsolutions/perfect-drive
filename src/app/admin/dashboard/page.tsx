@@ -13,7 +13,7 @@ export default async function AdminDashboard() {
     const { data: vehicles } = await supabase
         .from('vehicles')
         .select('*')
-        .order('name');
+        .order('name', { ascending: true });
 
     // Fetch all bookings with vehicle details
     const { data: bookings } = await supabase

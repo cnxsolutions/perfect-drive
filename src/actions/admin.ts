@@ -442,12 +442,15 @@ export async function createVehicle(formData: FormData) {
     try {
         const uploadedUrls = await uploadVehicleImages(formData);
         
+        const vehicleName = (formData.get('name') as string) || '';
+        const vehicleTrim = (formData.get('trim') as string) || '';
+
         const data = {
-            name: formData.get('name') as string,
-            trim: formData.get('trim') as string,
-            color: formData.get('color') as string,
-            brand: formData.get('brand') as string,
-            model: formData.get('model') as string,
+            name: vehicleName,
+            trim: vehicleTrim,
+            color: (formData.get('color') as string) || '',
+            brand: (formData.get('brand') as string) || vehicleName,
+            model: (formData.get('model') as string) || vehicleTrim,
             registration_number: formData.get('registration_number') as string,
             daily_rate: parseFloat(formData.get('daily_rate') as string) || 0,
             weekend_rate: parseFloat(formData.get('weekend_rate') as string) || 0,
@@ -455,7 +458,7 @@ export async function createVehicle(formData: FormData) {
             weekend_unlimited_rate: parseFloat(formData.get('weekend_unlimited_rate') as string) || 0,
             weekend_72h_rate: formData.get('weekend_72h_rate') ? parseFloat(formData.get('weekend_72h_rate') as string) : null,
             weekend_72h_unlimited_rate: formData.get('weekend_72h_unlimited_rate') ? parseFloat(formData.get('weekend_72h_unlimited_rate') as string) : null,
-            description: formData.get('description') as string,
+            description: (formData.get('description') as string) || '',
             is_available: formData.get('is_available') === 'true',
             allow_unlimited_mileage: formData.get('allow_unlimited_mileage') !== 'false',
             deposit_amount: formData.get('deposit_amount') ? parseInt(formData.get('deposit_amount') as string, 10) : 700,
@@ -496,7 +499,7 @@ export async function getVehicles() {
                     total_price
                 )
             `)
-            .order('created_at', { ascending: false });
+            .order('name', { ascending: true });
 
         if (error) throw error;
 

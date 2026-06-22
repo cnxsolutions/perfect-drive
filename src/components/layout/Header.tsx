@@ -88,9 +88,9 @@ export default function Header() {
                                                 )}
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="font-bold text-white text-xs font-montserrat">{v.name}</span>
+                                                <span className="font-bold text-white text-xs font-montserrat">{v.name || 'Véhicule'}</span>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-[9px] text-gray-500 font-montserrat uppercase tracking-wider">{v.trim}</span>
+                                                    {v.trim && <span className="text-[9px] text-gray-500 font-montserrat uppercase tracking-wider">{v.trim}</span>}
                                                     <span className="text-[9px] bg-alpine/20 text-alpine px-1 rounded font-bold">Dès {v.daily_rate}€</span>
                                                 </div>
                                             </div>
@@ -213,7 +213,7 @@ export default function Header() {
                                 >
                                     <div className="flex items-center gap-3">
                                         <Car className="w-5 h-5 text-alpine" />
-                                        {v.name}
+                                        {v.name || 'Véhicule'}
                                     </div>
                                     <span className="text-xs tracking-wider bg-alpine/20 text-alpine px-2 py-1 rounded-md font-montserrat uppercase">
                                         Dès {v.daily_rate}€/j

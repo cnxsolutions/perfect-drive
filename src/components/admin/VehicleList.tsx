@@ -77,7 +77,7 @@ export default function VehicleList({ vehicles, onRefresh }: VehicleListProps) {
                                     </div>
                                     <div className="min-w-0">
                                         <p className="text-sm font-medium text-white truncate">
-                                            {vehicle.name}
+                                            {vehicle.name || 'Sans nom'}
                                         </p>
                                         <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-[11px] text-gray-500">
                                             {vehicle.trim && (
