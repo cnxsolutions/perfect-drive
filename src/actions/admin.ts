@@ -9,6 +9,7 @@ import { CustomerConfirmedTemplate } from '@/components/emails/CustomerConfirmed
 import { CustomerReceivedTemplate } from '@/components/emails/CustomerReceivedTemplate';
 import { AdminNewBookingTemplate } from '@/components/emails/AdminNewBookingTemplate';
 import React from 'react';
+import { echec } from '@/lib/errors';
 
 export async function approveBooking(bookingId: string) {
     try {
@@ -46,9 +47,9 @@ export async function approveBooking(bookingId: string) {
         }
 
         revalidatePath('/admin');
-        return { success: true };
-    } catch {
-        return { success: false, error: 'Failed to approve' };
+        return { success: true as const };
+    } catch (error) {
+        return echec('approveBooking', error, 'reservation');
     }
 }
 
@@ -87,9 +88,9 @@ export async function sendPaymentLink(bookingId: string, paymentLink: string) {
         }
 
         revalidatePath('/admin');
-        return { success: true };
-    } catch {
-        return { success: false, error: 'Failed to send link' };
+        return { success: true as const };
+    } catch (error) {
+        return echec('sendPaymentLink', error, 'reservation');
     }
 }
 
@@ -127,9 +128,9 @@ export async function rejectBooking(bookingId: string, reason: string) {
         }
 
         revalidatePath('/admin');
-        return { success: true };
-    } catch {
-        return { success: false, error: 'Failed to reject' };
+        return { success: true as const };
+    } catch (error) {
+        return echec('rejectBooking', error, 'reservation');
     }
 }
 
@@ -141,10 +142,9 @@ export async function getDocumentUrl(path: string) {
             .createSignedUrl(path, 60 * 60); // 1 hour expiry
 
         if (error) throw error;
-        return { success: true, url: data.signedUrl };
+        return { success: true as const, url: data.signedUrl };
     } catch (e) {
-        console.error('Error signing URL:', e);
-        return { success: false, error: 'Could not generate link' };
+        return echec('getDocumentUrl', e, 'document');
     }
 }
 
@@ -163,9 +163,9 @@ export async function deleteBooking(bookingId: string) {
         if (error) throw error;
 
         revalidatePath('/admin');
-        return { success: true };
-    } catch {
-        return { success: false, error: 'Échec de la suppression' };
+        return { success: true as const };
+    } catch (error) {
+        return echec('deleteBooking', error, 'reservation');
     }
 }
 
@@ -249,8 +249,7 @@ export async function createAdminBooking(formData: FormData) {
             });
 
         if (insertError) {
-            console.error('DB Insert Error:', insertError);
-            return { success: false, error: "Erreur lors de la création." };
+            return echec('createAdminBooking.insert', insertError, 'reservation');
         }
 
         // 3. Send Confirmation Email to Customer (if email provided)
@@ -284,11 +283,10 @@ export async function createAdminBooking(formData: FormData) {
         }
 
         revalidatePath('/admin');
-        return { success: true };
+        return { success: true as const };
 
     } catch (error) {
-        console.error('Admin Create Action Error:', error);
-        return { success: false, error: "Une erreur inattendue est survenue." };
+        return echec('createAdminBooking', error, 'reservation');
     }
 }
 // ... (existing code for createAdminBooking)
@@ -385,16 +383,14 @@ export async function updateAdminBooking(bookingId: string, formData: FormData) 
             .eq('id', bookingId);
 
         if (updateError) {
-            console.error('DB Update Error:', updateError);
-            return { success: false, error: "Erreur lors de la modification." };
+            return echec('updateAdminBooking.update', updateError, 'reservation');
         }
 
         revalidatePath('/admin');
-        return { success: true };
+        return { success: true as const };
 
     } catch (error) {
-        console.error('Admin Update Action Error:', error);
-        return { success: false, error: "Une erreur inattendue est survenue." };
+        return echec('updateAdminBooking', error, 'reservation');
     }
 }
 // ============================================
@@ -456,8 +452,10 @@ export async function createVehicle(formData: FormData) {
             weekend_rate: parseFloat(formData.get('weekend_rate') as string) || 0,
             unlimited_rate: parseFloat(formData.get('unlimited_rate') as string) || 0,
             weekend_unlimited_rate: parseFloat(formData.get('weekend_unlimited_rate') as string) || 0,
-            weekend_72h_rate: formData.get('weekend_72h_rate') ? parseFloat(formData.get('weekend_72h_rate') as string) : null,
-            weekend_72h_unlimited_rate: formData.get('weekend_72h_unlimited_rate') ? parseFloat(formData.get('weekend_72h_unlimited_rate') as string) : null,
+            // Les colonnes weekend_72h_rate / weekend_72h_unlimited_rate ont ete
+            // supprimees par la migration 20260403_drop_72h_rates.sql. Les envoyer,
+            // meme a null, faisait rejeter TOUTE creation de vehicule par PostgREST
+            // (PGRST204), sous le message opaque « Echec de la creation du vehicule ».
             description: (formData.get('description') as string) || '',
             is_available: formData.get('is_available') === 'true',
             allow_unlimited_mileage: formData.get('allow_unlimited_mileage') !== 'false',
@@ -477,10 +475,9 @@ export async function createVehicle(formData: FormData) {
 
         revalidatePath('/admin');
         revalidatePath('/');
-        return { success: true, vehicle };
+        return { success: true as const, vehicle };
     } catch (error) {
-        console.error('Error creating vehicle:', error);
-        return { success: false, error: 'Échec de la création du véhicule' };
+        return echec('createVehicle', error, 'vehicule');
     }
 }
 
@@ -578,10 +575,9 @@ export async function getVehicles() {
             };
         });
 
-        return { success: true, vehicles: enrichedVehicles };
+        return { success: true as const, vehicles: enrichedVehicles };
     } catch (error) {
-        console.error('Error fetching vehicles:', error);
-        return { success: false, error: 'Échec du chargement des véhicules' };
+        return echec('getVehicles', error, 'vehicule');
     }
 }
 
@@ -595,10 +591,9 @@ export async function getVehicleById(id: string) {
 
         if (error) throw error;
 
-        return { success: true, vehicle };
+        return { success: true as const, vehicle };
     } catch (error) {
-        console.error('Error fetching vehicle:', error);
-        return { success: false, error: 'Véhicule non trouvé' };
+        return echec('getVehicleById', error, 'vehicule');
     }
 }
 
@@ -620,8 +615,7 @@ export async function updateVehicle(id: string, formData: FormData) {
             weekend_rate: parseFloat(formData.get('weekend_rate') as string) || 0,
             unlimited_rate: parseFloat(formData.get('unlimited_rate') as string) || 0,
             weekend_unlimited_rate: parseFloat(formData.get('weekend_unlimited_rate') as string) || 0,
-            weekend_72h_rate: formData.get('weekend_72h_rate') ? parseFloat(formData.get('weekend_72h_rate') as string) : null,
-            weekend_72h_unlimited_rate: formData.get('weekend_72h_unlimited_rate') ? parseFloat(formData.get('weekend_72h_unlimited_rate') as string) : null,
+            // Colonnes supprimees par 20260403_drop_72h_rates.sql : voir createVehicle.
             description: formData.get('description') as string,
             is_available: formData.get('is_available') === 'true',
             allow_unlimited_mileage: formData.get('allow_unlimited_mileage') !== 'false',
@@ -643,10 +637,9 @@ export async function updateVehicle(id: string, formData: FormData) {
 
         revalidatePath('/admin');
         revalidatePath('/');
-        return { success: true, vehicle };
+        return { success: true as const, vehicle };
     } catch (error) {
-        console.error('Error updating vehicle:', error);
-        return { success: false, error: 'Échec de la modification du véhicule' };
+        return echec('updateVehicle', error, 'vehicule');
     }
 }
 
@@ -660,10 +653,9 @@ export async function deleteVehicle(id: string) {
         if (error) throw error;
 
         revalidatePath('/admin');
-        return { success: true };
+        return { success: true as const };
     } catch (error) {
-        console.error('Error deleting vehicle:', error);
-        return { success: false, error: 'Échec de la suppression du véhicule' };
+        return echec('deleteVehicle', error, 'vehicule');
     }
 }
 
@@ -679,9 +671,8 @@ export async function toggleVehicleAvailability(id: string, isAvailable: boolean
         if (error) throw error;
 
         revalidatePath('/admin');
-        return { success: true, vehicle };
+        return { success: true as const, vehicle };
     } catch (error) {
-        console.error('Error updating vehicle availability:', error);
-        return { success: false, error: 'Échec de la mise à jour' };
+        return echec('toggleVehicleAvailability', error, 'vehicule');
     }
 }

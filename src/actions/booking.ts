@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { calculatePrice, MileageType } from '@/lib/pricing';
 import { revalidatePath } from 'next/cache';
 import { randomUUID } from 'crypto';
+import { echec, messageErreur } from '@/lib/errors';
 import { resend, EMAIL_FROM, EMAIL_ADMIN } from '@/lib/resend';
 import { AdminNewBookingTemplate } from '@/components/emails/AdminNewBookingTemplate';
 import { CustomerReceivedTemplate } from '@/components/emails/CustomerReceivedTemplate';
@@ -17,7 +18,26 @@ export async function createBookingAction(formData: FormData) {
 
         // Validations basic
         if (!startDateStr || !endDateStr || !vehicleId) {
-            return { success: false, error: "Informations manquantes." };
+            // Avant : « Informations manquantes. », qui ne disait pas lesquelles.
+            const manquants = [
+                !startDateStr && "la date de depart",
+                !endDateStr && "la date de retour",
+                !vehicleId && "le vehicule",
+            ].filter(Boolean).join(', ');
+            return { success: false, error: `Demande incomplete : il manque ${manquants}. Reprenez la selection dans le calendrier.` };
+        }
+
+        // Les heures partaient vides vers une RPC dont le parametre est de type TIME :
+        // Postgres renvoyait « invalid input syntax for type time », masque par un
+        // message de disponibilite qui faisait croire que le creneau etait pris.
+        const heureValide = /^\d{2}:\d{2}(:\d{2})?$/;
+        const startTimeStr = (formData.get('startTime') as string) || '';
+        const endTimeStr = (formData.get('endTime') as string) || '';
+        if (!heureValide.test(startTimeStr) || !heureValide.test(endTimeStr)) {
+            return { success: false, error: "Heure de depart ou de retour manquante. Renseignez les deux horaires au format HH:MM." };
+        }
+        if (startDateStr === endDateStr && endTimeStr <= startTimeStr) {
+            return { success: false, error: `L'heure de retour (${endTimeStr}) doit etre posterieure a l'heure de depart (${startTimeStr}).` };
         }
 
         // Helper to parse safely for Price Calculation (Local Midnight)
@@ -59,7 +79,7 @@ export async function createBookingAction(formData: FormData) {
             .single();
 
         if (vehicleError || !vehicle) {
-            return { success: false, error: "Véhicule non trouvé." };
+            return { success: false, error: "Ce vehicule n'existe plus ou n'est plus disponible a la reservation. Rechargez la page." };
         }
 
         // Calculate Price Server-Side
@@ -78,8 +98,9 @@ export async function createBookingAction(formData: FormData) {
         });
 
         if (conflictError) {
-            console.error('Conflict Check Error:', conflictError);
-            return { success: false, error: "Erreur lors de la vérification de disponibilité." };
+            // Ne pas faire croire que le creneau est pris quand c'est la verification qui a echoue.
+            console.error('[createBookingAction] check_booking_conflict', conflictError);
+            return { success: false, error: "La disponibilite n'a pas pu etre verifiee. " + messageErreur(conflictError, 'disponibilite') };
         }
 
         if (hasConflict) {
@@ -96,7 +117,10 @@ export async function createBookingAction(formData: FormData) {
         const filePaths: Record<string, string> = {};
 
         for (const [key, file] of Object.entries(files)) {
-            if (!file || file.size === 0) return { success: false, error: `Document manquante: ${key}` };
+            if (!file || file.size === 0) {
+                const libelle = { idCard: "la piece d'identite", license: "le permis de conduire", proof: "le justificatif de domicile" }[key] ?? key;
+                return { success: false, error: `Document manquant ou vide : ${libelle}. Reprenez son envoi dans la section Documents.` };
+            }
 
             const fileExt = file.name.split('.').pop();
             const fileName = `${rawData.lastname}_${key}_${randomUUID()}.${fileExt}`;
@@ -112,8 +136,7 @@ export async function createBookingAction(formData: FormData) {
                 });
 
             if (uploadError) {
-                console.error('Upload Error:', uploadError);
-                return { success: false, error: "Erreur lors de l'upload des documents." };
+                return echec('createBookingAction.upload', uploadError, 'document');
             }
 
             filePaths[key] = uploadData.path;
@@ -144,8 +167,7 @@ export async function createBookingAction(formData: FormData) {
             });
 
         if (insertError) {
-            console.error('DB Insert Error:', insertError);
-            return { success: false, error: "Erreur lors de l'enregistrement." };
+            return echec('createBookingAction.insert', insertError, 'reservation');
         }
 
         // Send Emails via Resend
@@ -202,8 +224,7 @@ export async function createBookingAction(formData: FormData) {
         return { success: true };
 
     } catch (error) {
-        console.error('Server Action Error:', error);
-        return { success: false, error: "Une erreur inattendue est survenue." };
+        return echec('createBookingAction', error, 'reservation');
     }
 }
 

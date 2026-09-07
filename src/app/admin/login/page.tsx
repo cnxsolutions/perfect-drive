@@ -4,29 +4,43 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Lock } from 'lucide-react';
+import { messageErreur } from '@/lib/errors';
 
 export default function AdminLogin() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [erreur, setErreur] = useState<string | null>(null);
     const router = useRouter();
     const supabase = createClient();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        setErreur(null);
 
-        const { error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        });
+        try {
+            const { error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
 
-        if (error) {
-            alert('Erreur de connexion: ' + error.message);
-            setLoading(false);
-        } else {
+            if (error) {
+                // Auparavant : alert('Erreur de connexion: ' + error.message), qui presentait
+                // « Invalid API key » (une erreur de configuration serveur) comme un probleme
+                // de mot de passe, et exposait le message brut de Supabase en anglais.
+                console.error('[adminLogin] echec', { code: error.code, message: error.message });
+                setErreur(messageErreur(error, 'auth'));
+                return;
+            }
+
             router.push('/admin/dashboard');
             router.refresh();
+        } catch (e) {
+            console.error('[adminLogin] echec de transport', e);
+            setErreur(messageErreur(e, 'auth'));
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -64,10 +78,19 @@ export default function AdminLogin() {
                         />
                     </div>
 
+                    {erreur && (
+                        <div
+                            role="alert"
+                            className="p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-300 text-sm font-montserrat"
+                        >
+                            {erreur}
+                        </div>
+                    )}
+
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-3 alpine-btn font-oswald font-bold rounded mt-4"
+                        className="w-full py-3 alpine-btn font-oswald font-bold rounded mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {loading ? 'Connexion...' : 'SE CONNECTER'}
                     </button>

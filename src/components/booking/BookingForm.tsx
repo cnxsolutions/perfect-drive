@@ -34,6 +34,16 @@ export default function BookingForm({ startDate, endDate, startTime, endTime, ve
         id: null, license: null, proof: null
     });
 
+    // Le mode de depot etait pilote par des <input type="radio"> places HORS du <form> :
+    // new FormData(form) ne les voyait pas, le serveur retombait sur 'imprint' et le choix
+    // « Especes » du client n'arrivait jamais. On le tient donc en etat React.
+    const [depositMethod, setDepositMethod] = useState<'imprint' | 'cash'>('imprint');
+
+    // Limite des Server Actions Next.js (next.config.ts : bodySizeLimit 10 Mo).
+    // Sans ce garde, trois photos de smartphone depassaient la limite et l'utilisateur
+    // ne voyait que « Une erreur est survenue lors de l'envoi. »
+    const TAILLE_MAX_TOTALE = 9 * 1024 * 1024;
+
     const [standardKmLimitStr, setStandardKmLimitStr] = useState('150 km/jour');
 
     // Calculate Price
@@ -72,16 +82,82 @@ export default function BookingForm({ startDate, endDate, startTime, endTime, ve
         e.preventDefault();
         setServerError(null);
 
-        if (price === "--" || alertMessage) return;
-        if (!startDate || !endDate) return;
+        // Chacun de ces cas renvoyait autrefois un `return` nu : le bouton restait actif,
+        // rien ne s'affichait, et le client ne pouvait pas deviner ce qui manquait.
+        if (alertMessage) {
+            setServerError(alertMessage);
+            return;
+        }
+
+        if (!startDate && !endDate) {
+            setServerError("Choisissez d'abord vos dates dans le calendrier « 01. Disponibilités ».");
+            return;
+        }
+
+        if (!startDate || !endDate) {
+            setServerError(
+                "Il manque la date de retour : cliquez un second jour dans le calendrier "
+                + "(recliquez le même jour pour une location d'une seule journée)."
+            );
+            return;
+        }
+
+        if (price === "--") {
+            setServerError(
+                "Le tarif n'a pas pu être calculé pour cette période. Modifiez vos dates, "
+                + "puis réessayez."
+            );
+            return;
+        }
+
+        if (!startTime || !endTime) {
+            setServerError("Renseignez l'heure de départ et l'heure de retour dans « 01.5 Horaires ».");
+            return;
+        }
+
+        const memeJour = startDate.toDateString() === endDate.toDateString();
+        if (memeJour && endTime <= startTime) {
+            setServerError(
+                `L'heure de retour (${endTime}) doit être postérieure à l'heure de départ (${startTime}) `
+                + "pour une location sur une seule journée."
+            );
+            return;
+        }
+
         if (!vehicle?.id) {
-            setServerError("Erreur : Aucun véhicule sélectionné.");
+            // Il n'existe aucun selecteur de vehicule dans l'interface : si l'on arrive ici,
+            // c'est que la fiche n'a pas pu etre lue en base, pas que le client a oublie de choisir.
+            setServerError(
+                "Le véhicule n'a pas pu être chargé : la réservation est momentanément impossible. "
+                + "Rechargez la page, et si le problème persiste contactez-nous directement par WhatsApp."
+            );
             return;
         }
 
         // Check files
-        if (!files.id || !files.license || !files.proof) {
-            setServerError("Veuillez télécharger tous les documents requis.");
+        const { id: fichierIdentite, license: fichierPermis, proof: fichierDomicile } = files;
+
+        if (!fichierIdentite || !fichierPermis || !fichierDomicile) {
+            const manquants = [
+                !fichierIdentite && "la pièce d'identité",
+                !fichierPermis && "le permis de conduire",
+                !fichierDomicile && "le justificatif de domicile",
+            ].filter(Boolean) as string[];
+
+            const liste = manquants.length === 1
+                ? manquants[0]
+                : `${manquants.slice(0, -1).join(', ')} et ${manquants[manquants.length - 1]}`;
+            setServerError(`Il manque ${liste} dans la section « 03. Documents ».`);
+            return;
+        }
+
+        const tailleTotale = fichierIdentite.size + fichierPermis.size + fichierDomicile.size;
+        if (tailleTotale > TAILLE_MAX_TOTALE) {
+            const mo = (tailleTotale / (1024 * 1024)).toFixed(1);
+            setServerError(
+                `Vos trois documents pèsent ${mo} Mo au total, la limite d'envoi est de 9 Mo. `
+                + "Réduisez la taille de vos photos (ou envoyez des captures plutôt que les originaux)."
+            );
             return;
         }
 
@@ -105,11 +181,13 @@ export default function BookingForm({ startDate, endDate, startTime, endTime, ve
             formData.set('endTime', endTime);
             formData.set('mileage', mileage);
             formData.set('vehicle_id', vehicle.id);
+            // Les radios sont hors du <form> : sans ce set, le choix « Especes » etait perdu.
+            formData.set('deposit_method', depositMethod);
 
-            // Append Files manually
-            formData.append('file_id', files.id);
-            formData.append('file_license', files.license);
-            formData.append('file_proof', files.proof);
+            // Append Files manually (non-null : verifies plus haut avant setLoading)
+            formData.append('file_id', fichierIdentite);
+            formData.append('file_license', fichierPermis);
+            formData.append('file_proof', fichierDomicile);
 
             const result = await createBookingAction(formData);
 
@@ -118,8 +196,24 @@ export default function BookingForm({ startDate, endDate, startTime, endTime, ve
             } else {
                 setServerError(result.error as string);
             }
-        } catch {
-            setServerError("Une erreur est survenue lors de l'envoi.");
+        } catch (err) {
+            // Ce catch ne se declenche que sur un echec de transport (reseau coupe,
+            // Server Action rejetee, corps trop lourd) : le dire, plutot que « une erreur ».
+            console.error('[createBookingAction] echec de transport', err);
+            const brut = err instanceof Error ? err.message : String(err);
+            if (/Body exceeded|too large|413/i.test(brut)) {
+                setServerError(
+                    "Vos documents sont trop volumineux pour être envoyés (limite 10 Mo au total). "
+                    + "Réduisez la taille de vos photos et réessayez."
+                );
+            } else if (/fetch|network|Failed to fetch|NetworkError/i.test(brut)) {
+                setServerError(
+                    "Votre demande n'a pas pu être envoyée : la connexion au serveur a échoué. "
+                    + "Vérifiez votre connexion internet et réessayez."
+                );
+            } else {
+                setServerError(`Votre demande n'a pas pu être envoyée. Cause technique : ${brut}`);
+            }
         } finally {
             setLoading(false);
         }
@@ -240,14 +334,22 @@ export default function BookingForm({ startDate, endDate, startTime, endTime, ve
                         <label className="block text-xs lg:text-sm font-oswald uppercase tracking-widest mb-2 text-gray-400 text-center lg:text-left">Mode de Dépôt de Garantie ({vehicle?.deposit_amount || 700}€)</label>
                         <div className="grid grid-cols-2 gap-3">
                             <label className="cursor-pointer">
-                                <input type="radio" name="deposit_method" value="imprint" className="peer hidden" defaultChecked />
+                                <input
+                                    type="radio" name="deposit_method" value="imprint" className="peer hidden"
+                                    checked={depositMethod === 'imprint'}
+                                    onChange={() => setDepositMethod('imprint')}
+                                />
                                 <div className="border border-white/10 peer-checked:border-alpine peer-checked:bg-alpine/10 rounded-lg p-3 text-center transition-all">
                                     <span className="block text-[10px] lg:text-xs font-bold text-white uppercase">Empreinte CB</span>
                                     <span className="text-[8px] lg:text-[10px] text-gray-500">Non débité</span>
                                 </div>
                             </label>
                             <label className="cursor-pointer">
-                                <input type="radio" name="deposit_method" value="cash" className="peer hidden" />
+                                <input
+                                    type="radio" name="deposit_method" value="cash" className="peer hidden"
+                                    checked={depositMethod === 'cash'}
+                                    onChange={() => setDepositMethod('cash')}
+                                />
                                 <div className="border border-white/10 peer-checked:border-alpine peer-checked:bg-alpine/10 rounded-lg p-3 text-center transition-all">
                                     <span className="block text-[10px] lg:text-xs font-bold text-white uppercase">Espèces</span>
                                     <span className="text-[8px] lg:text-[10px] text-gray-500">Sur place</span>

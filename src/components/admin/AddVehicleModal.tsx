@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { messageErreur } from '@/lib/errors';
 import { X, Loader2, Plus, Car } from 'lucide-react';
 import { createVehicle } from '@/actions/admin';
 import VehicleForm from './VehicleForm';
@@ -17,15 +18,16 @@ export default function AddVehicleModal({ onClose, onSuccess }: { onClose: () =>
             const result = await createVehicle(formData);
             
             if (!result.success) {
-                setError(result.error || 'Une erreur est survenue');
+                // result.error vient deja du traducteur d'erreurs cote serveur (lib/errors.ts).
+                setError(result.error || "L'enregistrement a echoue sans que la base en donne la raison. Reessayez, puis consultez les journaux du serveur.");
                 return;
             }
 
             onSuccess?.();
             onClose();
         } catch (err) {
-            setError('Une erreur inattendue est survenue');
-            console.error(err);
+            console.error('[vehicule] echec de transport', err);
+            setError(messageErreur(err, 'vehicule'));
         } finally {
             setLoading(false);
         }

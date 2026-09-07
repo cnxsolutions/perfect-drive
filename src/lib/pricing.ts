@@ -10,13 +10,30 @@ export interface PriceResult {
     error: string | null;
 }
 
+/**
+ * Lit un tarif en le forcant en nombre.
+ *
+ * Deux defauts corriges ici. (1) Supabase peut rendre une colonne DECIMAL sous
+ * forme de chaine : sans Number(), `"130.00" + 0` donnait la chaine "130.000",
+ * affichee telle quelle au client. (2) `||` traitait un tarif enregistre a 0
+ * comme une absence de valeur et le remplacait par une constante inventee ;
+ * `??` ne se declenche que sur null/undefined, donc un 0 reste un 0.
+ */
+function tarif(valeur: number | string | null | undefined, repli: number): number {
+    if (valeur === null || valeur === undefined || valeur === '') return repli;
+    const n = Number(valeur);
+    return Number.isFinite(n) ? n : repli;
+}
+
 // Helper: Get rate for a single weekday
 function getWeekdayRate(mileage: MileageType, vehicle?: Vehicle): { price: number; km: number } {
-    const dailyRate = Number(vehicle?.daily_rate || 60);
-    const standardLimit = vehicle?.allow_unlimited_mileage === false ? 200 : (vehicle?.mileage_standard_limit || 150);
+    const dailyRate = tarif(vehicle?.daily_rate, 60);
+    const standardLimit = vehicle?.allow_unlimited_mileage === false
+        ? 200
+        : tarif(vehicle?.mileage_standard_limit, 150);
 
     if (mileage === 'unlimited') {
-        const price = vehicle?.unlimited_rate || (dailyRate + 30);
+        const price = tarif(vehicle?.unlimited_rate, dailyRate + 30);
         return { price, km: 0 };
     }
     return { price: dailyRate, km: standardLimit };
@@ -24,8 +41,8 @@ function getWeekdayRate(mileage: MileageType, vehicle?: Vehicle): { price: numbe
 
 // Helper: Get weekend package rate
 function getWeekendPackage(days: number, mileage: MileageType, vehicle?: Vehicle): { price: number; km: number } | null {
-    const weekendRate = Number(vehicle?.weekend_rate || 150);
-    const weekendUnlimitedRate = vehicle?.weekend_unlimited_rate || (weekendRate + 50);
+    const weekendRate = tarif(vehicle?.weekend_rate, 150);
+    const weekendUnlimitedRate = tarif(vehicle?.weekend_unlimited_rate, weekendRate + 50);
 
     // 48h weekend (Fri-Sun)
     if (days === 2) {
@@ -72,8 +89,8 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType, veh
         
         let rate: { price: number; km: number };
         if (isAdmin && isWeekendDay) {
-            const weekendRate = Number(vehicle?.weekend_rate || 150);
-            const weekendUnlimitedRate = vehicle?.weekend_unlimited_rate || (weekendRate + 50);
+            const weekendRate = tarif(vehicle?.weekend_rate, 150);
+            const weekendUnlimitedRate = tarif(vehicle?.weekend_unlimited_rate, weekendRate + 50);
             if (mileage === 'unlimited') {
                 rate = { price: weekendUnlimitedRate / 2, km: 0 };
             } else {
@@ -140,8 +157,8 @@ export function calculatePrice(start: Date, end: Date, mileage: MileageType, veh
 
         if (isAdmin || !isSaturday(nextDay)) {
             if (isAdmin && (isFriday(currentDate) || isSaturday(currentDate) || isSunday(currentDate))) {
-                const weekendRate = Number(vehicle?.weekend_rate || 150);
-                const weekendUnlimitedRate = vehicle?.weekend_unlimited_rate || (weekendRate + 50);
+                const weekendRate = tarif(vehicle?.weekend_rate, 150);
+                const weekendUnlimitedRate = tarif(vehicle?.weekend_unlimited_rate, weekendRate + 50);
                 dayRate = mileage === 'unlimited' 
                     ? { price: weekendUnlimitedRate / 2, km: 0 }
                     : { price: weekendRate / 2, km: 350 / 2 };

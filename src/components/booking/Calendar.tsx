@@ -18,7 +18,13 @@ const DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 
 export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, availability, isAdmin = false }: CalendarProps) {
-    const [currentDate, setCurrentDate] = useState(new Date());
+    // Ancre le mois affiche sur le 1er. En conservant le quantieme du jour, le 31 mai
+    // « -1 mois » donnait le 31 avril, que JS normalise en 1er mai : le bouton « mois
+    // precedent » restait sans effet, et le 31 octobre « +1 mois » sautait novembre.
+    const [currentDate, setCurrentDate] = useState(() => {
+        const maintenant = new Date();
+        return new Date(maintenant.getFullYear(), maintenant.getMonth(), 1);
+    });
 
     const getDaysInMonth = (date: Date) => {
         const year = date.getFullYear();
@@ -54,9 +60,9 @@ export default function Calendar({ selectedStart, selectedEnd, onRangeSelect, av
     };
 
     const changeMonth = (delta: number) => {
-        const newDate = new Date(currentDate);
-        newDate.setMonth(newDate.getMonth() + delta);
-        setCurrentDate(newDate);
+        // Toujours reconstruire depuis le 1er : setMonth() sur un 29/30/31 deborde
+        // sur le mois suivant et fait sauter un mois entier.
+        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + delta, 1));
     };
 
     const formatDateLocal = (date: Date) => {
