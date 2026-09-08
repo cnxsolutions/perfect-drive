@@ -16,7 +16,12 @@ export interface Vehicle {
     weekend_rate?: number;
     mileage_standard_limit: number;
     mileage_excess_rate: number;
+    /** Le vehicule est louable (etat operationnel). */
     is_available: boolean;
+    /** Le vehicule est montre aux clients sur le site public.
+     *  Colonne presente en base et filtree par getVisibleVehicles() et par RLS,
+     *  mais absente de ce type : elle n'etait donc pilotable depuis aucun ecran. */
+    is_visible: boolean;
     insurance_until?: string;
     inspection_until?: string;
     description?: string;

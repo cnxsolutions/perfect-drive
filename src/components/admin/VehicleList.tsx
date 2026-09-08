@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Edit2, Trash2, Eye, EyeOff, Car } from 'lucide-react';
 import { Vehicle } from '@/types/vehicle';
-import { deleteVehicle, toggleVehicleAvailability } from '@/actions/admin';
+import { deleteVehicle, toggleVehicleVisibility } from '@/actions/admin';
 import EditVehicleModal from './EditVehicleModal';
 
 interface VehicleListProps {
@@ -14,35 +14,54 @@ interface VehicleListProps {
 export default function VehicleList({ vehicles, onRefresh }: VehicleListProps) {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    // Les echecs partaient dans un alert() natif, qui tronque le message et sort du site.
+    const [erreur, setErreur] = useState<string | null>(null);
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Êtes-vous sûr de vouloir supprimer ce véhicule?')) return;
-        
+        const vehicule = vehicles.find(v => v.id === id);
+        if (!confirm(
+            `Supprimer definitivement « ${vehicule?.name ?? 'ce vehicule'} » ?\n\n`
+            + "La suppression echouera si des reservations y sont rattachees. "
+            + 'Pour le retirer du site sans perdre son historique, utilisez plutot le bouton Masquer.'
+        )) return;
+
         setLoading(true);
+        setErreur(null);
         const result = await deleteVehicle(id);
         setLoading(false);
-        
+
         if (result.success) {
             onRefresh();
         } else {
-            alert(result.error);
+            setErreur(result.error);
         }
     };
 
-    const handleToggleAvailability = async (id: string, isAvailable: boolean) => {
+    // Le bouton porte une icone d'oeil et le mot « Visible » : il doit donc piloter
+    // la visibilite cote client (is_visible), et non la disponibilite a la location
+    // (is_available), qui est une autre notion affichee par la pastille d'etat.
+    const handleToggleVisibility = async (id: string, isVisible: boolean) => {
         setLoading(true);
-        const result = await toggleVehicleAvailability(id, !isAvailable);
+        const result = await toggleVehicleVisibility(id, !isVisible);
         setLoading(false);
-        
+
         if (result.success) {
             onRefresh();
         } else {
-            alert(result.error);
+            setErreur(result.error);
         }
     };
 
     return (
         <div className="space-y-4">
+            {erreur && (
+                <div role="alert" className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-300 text-sm flex items-start justify-between gap-4">
+                    <span>{erreur}</span>
+                    <button onClick={() => setErreur(null)} className="text-red-400 hover:text-red-200 text-xs uppercase tracking-wider flex-none">
+                        Fermer
+                    </button>
+                </div>
+            )}
             {vehicles.length === 0 ? (
                 <div className="text-center py-12 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-4 bg-white/5">
                     <p className="text-gray-400 font-oswald tracking-widest uppercase">Aucun véhicule disponible</p>
@@ -144,16 +163,19 @@ export default function VehicleList({ vehicles, onRefresh }: VehicleListProps) {
                                         )}
                                     </div>
 
-                                    <button 
-                                        onClick={() => handleToggleAvailability(vehicle.id, vehicle.is_available)}
+                                    <button
+                                        onClick={() => handleToggleVisibility(vehicle.id, vehicle.is_visible)}
                                         disabled={loading}
+                                        title={vehicle.is_visible
+                                            ? 'Visible par les clients — cliquez pour le retirer du site'
+                                            : 'Masqué aux clients — cliquez pour le publier'}
                                         className={`text-[10px] flex items-center gap-1.5 transition-colors ${
-                                            vehicle.is_available 
-                                                ? 'text-gray-500 hover:text-gray-300' 
+                                            vehicle.is_visible
+                                                ? 'text-gray-500 hover:text-gray-300'
                                                 : 'text-red-500/80 hover:text-red-400'
                                         }`}
                                     >
-                                        {vehicle.is_available ? <><Eye className="w-3 h-3"/> Visible</> : <><EyeOff className="w-3 h-3"/> Masqué</>}
+                                        {vehicle.is_visible ? <><Eye className="w-3 h-3"/> Visible</> : <><EyeOff className="w-3 h-3"/> Masqué</>}
                                     </button>
                                 </div>
 

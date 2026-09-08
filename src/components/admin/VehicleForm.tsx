@@ -80,7 +80,10 @@ export default function VehicleForm({ initialData, onSubmit, loading, buttonText
         formData.append('unlimited_rate', unlimitedRate);
         formData.append('weekend_rate', weekendRate);
         formData.append('weekend_unlimited_rate', weekendUnlimitedRate);
-        formData.append('is_available', 'true');
+        // Ne JAMAIS forcer 'true' ici : ce champ etait ecrit en dur, si bien que la moindre
+        // modification (une couleur, un tarif) remettait en service un vehicule que
+        // l'administrateur avait retire de la route. A la creation, le defaut reste « disponible ».
+        formData.append('is_available', String(initialData ? initialData.is_available !== false : true));
         formData.append('allow_unlimited_mileage', allowUnlimitedMileage.toString());
         formData.append('deposit_amount', depositAmount);
         formData.append('accounting_cycle_day', accountingCycleDay);

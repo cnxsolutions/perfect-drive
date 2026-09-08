@@ -659,6 +659,33 @@ export async function deleteVehicle(id: string) {
     }
 }
 
+/**
+ * Visibilite du vehicule sur le site public.
+ *
+ * A ne pas confondre avec `is_available`, qui dit si le vehicule est louable.
+ * L'ecran Vehicules affichait un bouton « Visible / Masque » qui lisait et
+ * ecrivait `is_available` : un vehicule masque aux clients s'y annoncait
+ * « Visible », et aucun ecran ne permettait de modifier `is_visible`.
+ */
+export async function toggleVehicleVisibility(id: string, isVisible: boolean) {
+    try {
+        const { data: vehicle, error } = await supabaseAdmin
+            .from('vehicles')
+            .update({ is_visible: isVisible })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        revalidatePath('/admin');
+        revalidatePath('/');
+        return { success: true as const, vehicle };
+    } catch (error) {
+        return echec('toggleVehicleVisibility', error, 'vehicule');
+    }
+}
+
 export async function toggleVehicleAvailability(id: string, isAvailable: boolean) {
     try {
         const { data: vehicle, error } = await supabaseAdmin

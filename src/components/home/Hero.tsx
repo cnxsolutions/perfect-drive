@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Car } from 'lucide-react';
 import { Vehicle } from '@/types/vehicle';
 
 const DEFAULT_IMAGES = [
@@ -20,24 +20,35 @@ interface HeroProps {
 export default function Hero({ vehicle }: HeroProps) {
     const [currentSlide, setCurrentSlide] = useState(0);
 
-    const images = vehicle?.images && vehicle.images.length > 0 
-        ? vehicle.images 
+    // Les photos de repli representent la Clio V. Les servir pour un vehicule REEL
+    // sans photo revient a montrer une autre voiture que celle qu'on loue : un client
+    // reservait une BMW en voyant l'interieur d'une Clio. On ne les utilise donc que
+    // lorsqu'aucun vehicule n'est fourni (page d'accueil sans flotte chargee).
+    const photosDuVehicule = vehicle?.images?.filter(Boolean) ?? [];
+    const sansPhoto = !!vehicle && photosDuVehicule.length === 0;
+    const images = vehicle
+        ? photosDuVehicule
         : DEFAULT_IMAGES;
 
     useEffect(() => {
+        if (images.length === 0) return;
         const timer = setInterval(() => {
             setCurrentSlide((prev) => (prev + 1) % images.length);
         }, 5000);
         return () => clearInterval(timer);
     }, [images.length]);
 
-    const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % images.length);
-    const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + images.length) % images.length);
+    const nextSlide = () => images.length && setCurrentSlide((prev) => (prev + 1) % images.length);
+    const prevSlide = () => images.length && setCurrentSlide((prev) => (prev - 1 + images.length) % images.length);
 
-    const vehicleName = vehicle?.name || "Clio V";
-    const vehicleTrim = vehicle?.trim || "Esprit Alpine";
-    const vehicleColor = vehicle?.color || "Bleu Fusion";
-    const vehicleDescription = vehicle?.description || "Finition Bleu Fusion. Hybride E-Tech 145ch. L'élégance radicale.";
+    // Meme principe que pour les photos : ne pas preter a un vehicule reel le nom,
+    // la finition ou la couleur de la Clio V quand ses propres champs sont vides.
+    const vehicleName = vehicle ? (vehicle.name || 'Véhicule') : 'Clio V';
+    const vehicleTrim = vehicle ? (vehicle.trim || '') : 'Esprit Alpine';
+    const vehicleColor = vehicle ? (vehicle.color || '') : 'Bleu Fusion';
+    const vehicleDescription = vehicle
+        ? (vehicle.description || '')
+        : "Finition Bleu Fusion. Hybride E-Tech 145ch. L'élégance radicale.";
 
     return (
         <section id="showroom" className="relative pt-32 pb-10 px-4 md:px-6 overflow-hidden min-h-[80vh] flex items-center">
@@ -72,24 +83,37 @@ export default function Hero({ vehicle }: HeroProps) {
                     className="relative group z-20"
                 >
                     <div className="relative rounded-xl overflow-hidden shadow-2xl border border-white/10 aspect-[4/3] md:aspect-[16/10]">
-                        <AnimatePresence mode='wait'>
-                            <motion.div
-                                key={currentSlide}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.5 }}
-                                className="absolute inset-0"
-                            >
-                                <Image
-                                    src={images[currentSlide]}
-                                    alt={`${vehicleName} view ${currentSlide + 1}`}
-                                    fill
-                                    className="object-cover"
-                                    priority
-                                />
-                            </motion.div>
-                        </AnimatePresence>
+                        {sansPhoto ? (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/[0.03] border border-white/10">
+                                <Car className="w-12 h-12 text-white/15" />
+                                <p className="font-oswald uppercase tracking-[0.2em] text-xs text-white/40 text-center px-6">
+                                    Photos à venir
+                                </p>
+                                <p className="font-montserrat text-[10px] text-white/25 text-center px-6 max-w-xs">
+                                    Aucune photo n&apos;a encore été ajoutée pour ce véhicule.
+                                </p>
+                            </div>
+                        ) : (
+                            <AnimatePresence mode='wait'>
+                                <motion.div
+                                    key={currentSlide}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.5 }}
+                                    className="absolute inset-0"
+                                >
+                                    <Image
+                                        src={images[currentSlide]}
+                                        alt={`${vehicleName} vue ${currentSlide + 1}`}
+                                        fill
+                                        sizes="(max-width: 1024px) 100vw, 50vw"
+                                        className="object-cover"
+                                        priority
+                                    />
+                                </motion.div>
+                            </AnimatePresence>
+                        )}
 
                         {/* Overlays */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
@@ -98,17 +122,22 @@ export default function Hero({ vehicle }: HeroProps) {
                             <p className="text-alpine text-[10px] lg:text-xs font-bold uppercase tracking-wider mt-1">Perfect Drive Edition</p>
                         </div>
 
-                        {/* Controls - Always visible on mobile, hover on desktop */}
-                        <button onClick={prevSlide} className="absolute left-2 lg:left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-alpine/80 rounded-full text-white transition opacity-100 lg:opacity-0 lg:group-hover:opacity-100 z-30 backdrop-blur-sm">
-                            <ChevronLeft className="w-5 h-5 lg:w-6 lg:h-6" />
-                        </button>
-                        <button onClick={nextSlide} className="absolute right-2 lg:right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-alpine/80 rounded-full text-white transition opacity-100 lg:opacity-0 lg:group-hover:opacity-100 z-30 backdrop-blur-sm">
-                            <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6" />
-                        </button>
+                        {/* Controls - Always visible on mobile, hover on desktop.
+                            Masques quand il n'y a rien a faire defiler. */}
+                        {images.length > 1 && (
+                            <>
+                                <button onClick={prevSlide} aria-label="Photo précédente" className="absolute left-2 lg:left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-alpine/80 rounded-full text-white transition opacity-100 lg:opacity-0 lg:group-hover:opacity-100 z-30 backdrop-blur-sm">
+                                    <ChevronLeft className="w-5 h-5 lg:w-6 lg:h-6" />
+                                </button>
+                                <button onClick={nextSlide} aria-label="Photo suivante" className="absolute right-2 lg:right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-alpine/80 rounded-full text-white transition opacity-100 lg:opacity-0 lg:group-hover:opacity-100 z-30 backdrop-blur-sm">
+                                    <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6" />
+                                </button>
+                            </>
+                        )}
 
                         {/* Indicators */}
                         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 lg:gap-3 z-30">
-                            {images.map((_, idx) => (
+                            {images.length > 1 && images.map((_, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => setCurrentSlide(idx)}
