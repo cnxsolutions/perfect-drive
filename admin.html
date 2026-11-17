@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Perfect Drive – Admin planning</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0b0c0f;--panel:#14161b;--panel2:#1b1e25;--line:#2a2e37;--text:#f2f3f5;--muted:#9aa1ad;--accent:#2f7bff;--accent2:#5aa0ff;--ok:#22c55e;--err:#ef4444;--warn:#ffc163}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font:15px/1.5 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:900px;margin:0 auto;padding:0 16px}
+  header{border-bottom:1px solid var(--line);background:rgba(11,12,15,.9);position:sticky;top:0;z-index:5}
+  header .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .brand b{font:600 20px Oswald,sans-serif;letter-spacing:.06em;display:block;line-height:1}
+  .brand span{font-size:10px;letter-spacing:.28em;color:var(--accent2);text-transform:uppercase}
+  .btn{border:1px solid var(--line);background:transparent;color:var(--text);border-radius:10px;padding:9px 14px;font:600 14px Inter;cursor:pointer}
+  .btn:hover{border-color:var(--accent)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{background:#2468e0}
+  .btn.danger{color:#ff8a8a}
+  .btn.danger:hover{border-color:var(--err)}
+  .btn.sm{padding:6px 10px;font-size:13px}
+  .btn:disabled{opacity:.5;cursor:wait}
+  h1{font:600 26px Oswald,sans-serif;letter-spacing:.03em;text-transform:uppercase;margin:28px 0 4px}
+  h2{font:600 18px Oswald,sans-serif;letter-spacing:.04em;text-transform:uppercase;margin-bottom:12px}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px}
+  label{display:block;font-size:13px;color:var(--muted);font-weight:500;margin-bottom:6px}
+  input,select{width:100%;background:var(--panel2);border:1.5px solid var(--line);border-radius:10px;color:var(--text);font:15px Inter;padding:11px 12px;outline:none;color-scheme:dark}
+  input:focus,select:focus{border-color:var(--accent)}
+  .g{display:grid;gap:12px}
+  .g4{grid-template-columns:2fr 1fr 2fr 1fr}
+  .g2{grid-template-columns:1fr 1fr}
+  .msg{font-size:14px;margin-top:10px;min-height:20px}
+  .msg.err{color:var(--err)} .msg.ok{color:var(--ok)}
+  .info{font-size:13px;color:var(--warn);margin-top:10px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .tab{border:1px solid var(--line);background:var(--panel2);color:var(--muted);border-radius:20px;padding:7px 13px;font:500 13px Inter;cursor:pointer}
+  .tab.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .entry{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--panel2)}
+  .entry .top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start}
+  .badge{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;border-radius:6px;padding:3px 8px;margin-right:6px}
+  .b-block{background:rgba(239,68,68,.15);color:#ff9a9a}
+  .b-conf{background:rgba(34,197,94,.15);color:#7ee2a4}
+  .b-acc{background:rgba(47,123,255,.18);color:#a9c8ff}
+  .b-wait{background:rgba(255,193,99,.15);color:var(--warn)}
+  .car{font-weight:600;margin-top:6px}
+  .when{font-size:14px;margin-top:2px}
+  .dispo{font-size:13px;color:var(--warn);margin-top:2px}
+  .meta{font-size:13px;color:var(--muted);margin-top:2px}
+  .acts{display:flex;gap:6px}
+  .edit{margin-top:12px;border-top:1px dashed var(--line);padding-top:12px}
+  .empty{color:var(--muted);text-align:center;padding:24px}
+  .login{max-width:380px;margin:12vh auto 0}
+  .toggle{font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center;cursor:pointer;margin-top:4px}
+  .toggle input{width:auto;accent-color:var(--accent)}
+  .modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:16px}
+  .modal.open{display:flex}
+  .modal-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .modal-box h3{font:600 18px Oswald,sans-serif;letter-spacing:.04em;text-transform:uppercase;margin-bottom:10px}
+  .modal-box p{font-size:14px;color:#c9ced6;white-space:pre-line}
+  .modal-acts{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+  .btn.danger-fill{background:#dc2626;border-color:#dc2626;color:#fff}
+  @media (max-width:640px){ .g4,.g2{grid-template-columns:1fr 1fr} .g4 .wide{grid-column:1/-1} }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="brand"><b>PERFECT DRIVE</b><span>Espace admin</span></div>
+  <button class="btn sm" id="logout" hidden>Se déconnecter</button>
+</div></header>
+
+<main class="wrap">
+  <!-- Connexion -->
+  <section id="v-login" class="login">
+    <div class="card">
+      <h2>Connexion</h2>
+      <form id="f-login">
+        <label for="pwd">Mot de passe admin</label>
+        <input type="password" id="pwd" autocomplete="current-password" required>
+        <button class="btn primary" style="width:100%;margin-top:14px">Se connecter</button>
+        <p class="msg" id="m-login"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- Planning -->
+  <section id="v-app" hidden>
+    <h1>Planning des véhicules</h1>
+    <p class="sub">Indiquez l'heure <b>réelle</b> de départ et de retour. Le site ajoute automatiquement <b id="marge">1 h</b> de marge : un retour à 18h devient disponible pour les clients à 19h.</p>
+
+    <div class="card">
+      <h2>Ajouter une indisponibilité</h2>
+      <p class="sub" style="margin-bottom:14px">Location hors site, entretien, véhicule déjà loué…</p>
+      <form id="f-add">
+        <div class="g g2" style="margin-bottom:12px">
+          <div><label for="a-car">Véhicule</label><select id="a-car" required></select></div>
+          <div><label for="a-note">Note (optionnel)</label><input id="a-note" maxlength="200" placeholder="ex. Location Snap – Karim"></div>
+        </div>
+        <div class="g g4">
+          <div class="wide"><label for="a-d1">Départ</label><input type="date" id="a-d1" required></div>
+          <div><label for="a-h1">Heure</label><input type="time" id="a-h1" value="10:00" step="900" required></div>
+          <div class="wide"><label for="a-d2">Retour</label><input type="date" id="a-d2" required></div>
+          <div><label for="a-h2">Heure</label><input type="time" id="a-h2" value="18:00" step="900" required></div>
+        </div>
+        <p class="info" id="a-info"></p>
+        <button class="btn primary" style="margin-top:14px" id="a-btn">Ajouter au planning</button>
+        <p class="msg" id="m-add"></p>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Planning</h2>
+      <div class="tabs" id="tabs"></div>
+      <label class="toggle"><input type="checkbox" id="show-past"> Afficher aussi les périodes terminées</label>
+      <div id="list" style="margin-top:14px"></div>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-t">
+  <div class="modal-box">
+    <h3 id="modal-t">Confirmer</h3>
+    <p id="modal-m"></p>
+    <div class="modal-acts">
+      <button type="button" class="btn" id="modal-no">Annuler</button>
+      <button type="button" class="btn danger-fill" id="modal-yes">Supprimer</button>
+    </div>
+  </div>
+</div>
+<script src="config.js"></script>
+<script>
+const API = window.PD_API_URL || "";
+const $ = s => document.querySelector(s);
+let PWD = "", DATA = null, FILTER = "all";
+
+const store = { get(){ try { return sessionStorage.getItem("pd_admin") || ""; } catch { return ""; } },
+                set(v){ try { v ? sessionStorage.setItem("pd_admin", v) : sessionStorage.removeItem("pd_admin"); } catch {} } };
+
+async function call(body){
+  if (!API) throw new Error("Back-office non relié : collez l'URL de l'application Google dans config.js (voir INSTALLATION.md).");
+  const r = await fetch(API, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify({ password: PWD, ...body }) });
+  const j = await r.json();
+  if (j.auth === false) { logout(); throw new Error(j.message); }
+  if (!j.success) throw new Error(j.message || "Erreur");
+  return j;
+}
+
+// ---------- dates ----------
+const pad = n => String(n).padStart(2, "0");
+const parse = s => { const [d, h] = s.split(" "); const [y, m, dd] = d.split("-").map(Number); const [H, M] = (h || "00:00").split(":").map(Number); return new Date(y, m - 1, dd, H, M); };
+const fmtDT = s => { const d = parse(s); return d.toLocaleDateString("fr-FR", {weekday:"short", day:"numeric", month:"short"}) + " " + hFmt(`${pad(d.getHours())}:${pad(d.getMinutes())}`); };
+const hFmt = hm => hm.replace(/^0/, "").replace(":", "h").replace(/h00$/, "h");
+const plusMarge = s => { const d = parse(s); d.setHours(d.getHours() + (DATA ? DATA.marge : 1)); return d; };
+const fmtD = d => d.toLocaleDateString("fr-FR", {weekday:"long", day:"numeric", month:"long"}) + " à " + hFmt(`${pad(d.getHours())}:${pad(d.getMinutes())}`);
+const nowStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+
+// ---------- vues ----------
+function show(logged){
+  $("#v-login").hidden = logged; $("#v-app").hidden = !logged; $("#logout").hidden = !logged;
+}
+function logout(){ PWD = ""; store.set(""); DATA = null; show(false); }
+$("#logout").onclick = logout;
+
+$("#f-login").addEventListener("submit", async e => {
+  e.preventDefault();
+  PWD = $("#pwd").value; $("#m-login").className = "msg"; $("#m-login").textContent = "Connexion…";
+  try { DATA = await call({ action: "admin_login" }); store.set(PWD); $("#pwd").value = ""; $("#m-login").textContent = ""; init(); }
+  catch (err) { $("#m-login").className = "msg err"; $("#m-login").textContent = err.message; }
+});
+
+function init(){
+  show(true);
+  $("#marge").textContent = DATA.marge + " h";
+  const opts = Object.entries(DATA.vehicules).map(([id, n]) => `<option value="${id}">${n}</option>`).join("");
+  $("#a-car").innerHTML = opts;
+  render();
+}
+
+function badge(e){
+  if (e.kind === "blocage") return `<span class="badge b-block">Indisponible</span>`;
+  if (/Confirm/.test(e.statut)) return `<span class="badge b-conf">Location confirmée</span>`;
+  if (/Accept/.test(e.statut)) return `<span class="badge b-acc">Acceptée · acompte en attente</span>`;
+  return `<span class="badge b-wait">Demande en attente</span>`;
+}
+
+function render(){
+  const v = DATA.vehicules;
+  $("#tabs").innerHTML = [["all", "Tous"], ...Object.entries(v).map(([id, n]) => [id, n.split(" – ")[0].replace("Renault ", "") + (n.includes("–") ? " " + n.split(" – ")[1].split(" ")[0] : "")])]
+    .map(([id, n]) => `<button class="tab${FILTER === id ? " on" : ""}" data-f="${id}">${n}</button>`).join("");
+  const past = $("#show-past").checked, now = nowStr();
+  const list = DATA.entries
+    .filter(e => FILTER === "all" || e.vehicule_id === FILTER)
+    .filter(e => past || e.fin >= now)
+    .sort((a, b) => a.debut.localeCompare(b.debut));
+  $("#list").innerHTML = list.length ? list.map((e, i) => {
+    const key = e.kind === "blocage" ? "b" + e.row : "d" + e.id;
+    const [d1, h1] = e.debut.split(" "), [d2, h2] = e.fin.split(" ");
+    return `<div class="entry" data-key="${key}">
+      <div class="top">
+        <div>
+          ${badge(e)}
+          <div class="car">${esc(v[e.vehicule_id] || e.vehicule_id)}</div>
+          <div class="when">${fmtDT(e.debut)} → ${fmtDT(e.fin)}</div>
+          ${e.kind === "demande" && /En attente/.test(e.statut) ? "" : `<div class="dispo">Disponible pour les clients dès ${fmtD(plusMarge(e.fin))}</div>`}
+          <div class="meta">${e.kind === "blocage" ? esc(e.note || "") : `${esc(e.client)} · ${esc(e.telephone)} · ${esc(e.id)}`}</div>
+        </div>
+        <div class="acts">
+          ${e.kind === "demande" && /En attente/.test(e.statut) ? "" : `<button class="btn sm" data-edit="${key}">Modifier</button>`}
+          ${e.kind === "blocage" ? `<button class="btn sm danger" data-del="${e.row}">Supprimer</button>`
+                                 : `<button class="btn sm danger" data-deld="${esc(e.id)}" data-who="${esc(e.client)}">Supprimer</button>`}
+        </div>
+      </div>
+      <form class="edit" hidden data-form="${key}">
+        <div class="g g4">
+          <div class="wide"><label>Départ</label><input type="date" name="d1" value="${d1}" required></div>
+          <div><label>Heure</label><input type="time" name="h1" value="${h1}" step="900" required></div>
+          <div class="wide"><label>Retour</label><input type="date" name="d2" value="${d2}" required></div>
+          <div><label>Heure</label><input type="time" name="h2" value="${h2}" step="900" required></div>
+        </div>
+        ${e.kind === "blocage" ? `<div style="margin-top:12px"><label>Note</label><input name="note" value="${esc(e.note || "")}" maxlength="200"></div>` : ""}
+        <p class="info"></p>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn primary sm">Enregistrer</button><button type="button" class="btn sm" data-cancel="${key}">Annuler</button>
+        </div>
+        <p class="msg"></p>
+      </form>
+    </div>`;
+  }).join("") : `<p class="empty">Aucune période ${past ? "" : "à venir "}pour ce véhicule : il est entièrement disponible.</p>`;
+}
+/** Fenêtre de confirmation dans la page (les fenêtres "confirm" du navigateur peuvent être bloquées) */
+function demander(titre, message){
+  return new Promise(res => {
+    const m = $("#modal"); $("#modal-t").textContent = titre; $("#modal-m").textContent = message;
+    m.classList.add("open"); $("#modal-yes").focus();
+    const fin = v => { m.classList.remove("open"); $("#modal-yes").onclick = $("#modal-no").onclick = m.onclick = null; document.removeEventListener("keydown", key); res(v); };
+    const key = e => { if (e.key === "Escape") fin(false); };
+    $("#modal-yes").onclick = () => fin(true); $("#modal-no").onclick = () => fin(false);
+    m.onclick = e => { if (e.target === m) fin(false); };
+    document.addEventListener("keydown", key);
+  });
+}
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+$("#tabs").addEventListener("click", e => { const b = e.target.closest(".tab"); if (b) { FILTER = b.dataset.f; render(); } });
+$("#show-past").addEventListener("change", render);
+
+$("#list").addEventListener("click", async e => {
+  const ed = e.target.closest("[data-edit]"), ca = e.target.closest("[data-cancel]"), del = e.target.closest("[data-del]");
+  if (ed) { const f = $(`[data-form="${ed.dataset.edit}"]`); f.hidden = !f.hidden; previewForm(f); }
+  if (ca) $(`[data-form="${ca.dataset.cancel}"]`).hidden = true;
+  if (del) {
+    if (!(await demander("Supprimer l'indisponibilité", "Les dates redeviendront réservables par les clients."))) return;
+    del.disabled = true;
+    try { DATA = await call({ action: "admin_delete", row: Number(del.dataset.del) }); render(); }
+    catch (err) { alert(err.message); del.disabled = false; }
+  }
+  const deld = e.target.closest("[data-deld]");
+  if (deld) {
+    if (!(await demander("Supprimer la réservation", `${deld.dataset.deld} – ${deld.dataset.who}\n\n• Les dates redeviennent réservables par les clients.\n• Le dossier de documents part à la corbeille Google Drive (récupérable 30 jours).\n• Le client n'est pas prévenu.`))) return;
+    deld.disabled = true;
+    try { DATA = await call({ action: "admin_delete", kind: "demande", id: deld.dataset.deld }); render(); }
+    catch (err) { alert(err.message); deld.disabled = false; }
+  }
+});
+$("#list").addEventListener("input", e => { const f = e.target.closest("form.edit"); if (f) previewForm(f); });
+function previewForm(f){
+  const d2 = f.d2.value, h2 = f.h2.value;
+  f.querySelector(".info").textContent = d2 && h2 ? `→ Disponible pour les clients dès ${fmtD(plusMarge(`${d2} ${h2}`))}` : "";
+}
+$("#list").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target, key = f.dataset.form, entry = DATA.entries.find(x => (x.kind === "blocage" ? "b" + x.row : "d" + x.id) === key);
+  const msg = f.querySelector(".msg"), btn = f.querySelector(".primary");
+  const debut = `${f.d1.value} ${f.h1.value}`, fin = `${f.d2.value} ${f.h2.value}`;
+  if (fin <= debut) { msg.className = "msg err"; msg.textContent = "Le retour doit être après le départ."; return; }
+  btn.disabled = true; msg.className = "msg"; msg.textContent = "Enregistrement…";
+  try {
+    DATA = await call({ action: "admin_save", kind: entry.kind, id: entry.id, row: entry.row, vehicule_id: entry.vehicule_id,
+                        debut, fin, note: f.note ? f.note.value : "" });
+    render();
+  } catch (err) { msg.className = "msg err"; msg.textContent = err.message; btn.disabled = false; }
+});
+
+// ---------- ajout ----------
+function previewAdd(){
+  const d2 = $("#a-d2").value, h2 = $("#a-h2").value;
+  $("#a-info").textContent = d2 && h2 ? `→ Disponible pour les clients dès ${fmtD(plusMarge(`${d2} ${h2}`))}` : "";
+}
+["#a-d2", "#a-h2"].forEach(s => $(s).addEventListener("input", previewAdd));
+$("#a-d1").addEventListener("change", () => { if (!$("#a-d2").value || $("#a-d2").value < $("#a-d1").value) { $("#a-d2").value = $("#a-d1").value; previewAdd(); } });
+$("#f-add").addEventListener("submit", async e => {
+  e.preventDefault();
+  const debut = `${$("#a-d1").value} ${$("#a-h1").value}`, fin = `${$("#a-d2").value} ${$("#a-h2").value}`;
+  const m = $("#m-add");
+  if (fin <= debut) { m.className = "msg err"; m.textContent = "Le retour doit être après le départ."; return; }
+  $("#a-btn").disabled = true; m.className = "msg"; m.textContent = "Ajout…";
+  try {
+    DATA = await call({ action: "admin_save", kind: "blocage", vehicule_id: $("#a-car").value, debut, fin, note: $("#a-note").value });
+    m.className = "msg ok"; m.textContent = "✓ Ajouté. Le planning du site est à jour.";
+    $("#a-note").value = ""; render();
+  } catch (err) { m.className = "msg err"; m.textContent = err.message; }
+  finally { $("#a-btn").disabled = false; }
+});
+
+// ---------- reprise de session ----------
+(async () => {
+  const saved = store.get();
+  if (!API) { $("#m-login").className = "msg err"; $("#m-login").textContent = "Back-office non relié : collez l'URL de l'application Google dans config.js."; return; }
+  if (!saved) return;
+  PWD = saved;
+  try { DATA = await call({ action: "admin_list" }); init(); } catch { logout(); }
+})();
+</script>
+</body>
+</html>

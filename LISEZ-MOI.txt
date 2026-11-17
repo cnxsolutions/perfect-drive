@@ -1,0 +1,19 @@
+PERFECT DRIVE – fichiers du site de réservation
+===============================================
+
+À mettre en ligne tels quels (même arborescence) :
+
+  index.html          page de réservation (copie de reservation.html, pour l'adresse racine)
+  reservation.html    page de réservation
+  admin.html          espace admin (protégé par mot de passe)
+  config.js           adresse du back-office Google
+  disponibilites.js   blocages fixes (vide : le planning se gère depuis l'admin)
+  images/             photos des véhicules + fond
+
+Adresses une fois en ligne (exemple avec un sous-domaine) :
+  Clients : https://reservation.p-drive.fr
+  Admin   : https://reservation.p-drive.fr/admin.html
+
+Ou, si ajouté au site existant (dossier public/ du projet Next.js) :
+  Clients : https://www.p-drive.fr/reservation.html
+  Admin   : https://www.p-drive.fr/admin.html
