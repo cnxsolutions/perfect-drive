@@ -99,6 +99,9 @@
   .modal-box p{font-size:14px;color:#c9ced6;white-space:pre-line}
   .modal-acts{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
   .btn.danger-fill{background:#dc2626;border-color:#dc2626;color:#fff}
+  .credit{text-align:center;color:var(--muted);font-size:12px;padding:28px 16px calc(28px + env(safe-area-inset-bottom))}
+  .credit a{color:inherit}
+  .credit a:hover{color:var(--text)}
   @media (max-width:640px){ .g4,.g2{grid-template-columns:1fr 1fr} .g4 .wide{grid-column:1/-1} }
 </style>
 </head>
@@ -167,6 +170,7 @@
     </div>
   </section>
 </main>
+<footer class="credit">Développé par <a href="https://cnx-solutions.fr" target="_blank" rel="noopener">CNX Solutions</a></footer>
 
 <!-- Éditeur de véhicule -->
 <div class="sheet" id="ved" role="dialog" aria-modal="true" aria-labelledby="ved-t">
