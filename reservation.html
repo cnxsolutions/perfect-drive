@@ -393,6 +393,10 @@
   /* barre fixe mobile */
   .cal-nav span{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 8px}
   .step-inner > .period{margin-top:14px}
+  s.old{color:var(--muted);font-weight:400;margin-right:2px}
+  .hero .liv.promo{background:rgba(255,193,99,.14);border-color:rgba(255,193,99,.45);color:#ffd28a;margin-left:6px}
+  .remise-l{color:#ffd28a}
+  .estim-card span s{opacity:.7}
   .step-inner > .estim-card{display:none}
   .mbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;align-items:center;gap:12px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:rgba(13,17,27,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);transform:translateY(110%);transition:transform .35s cubic-bezier(.2,.9,.2,1)}
   .mbar.show{transform:none}
@@ -445,6 +449,7 @@
     <h1>Réservez votre véhicule</h1>
     <p>Dernière génération, full options, remis propre avec le plein.</p>
     <span class="liv">🚚 Livraison gratuite à Troyes</span>
+    <span class="liv promo" id="promo-hero">-10 % en réservant sur le site</span>
   </div>
 </div>
 
@@ -653,7 +658,7 @@
       </details>
       <details class="faq-item">
         <summary>Proposez-vous des offres ?</summary>
-        <div class="faq-a"><p>Oui, régulièrement (semaine du lundi au vendredi, week-end…). Elles sont publiées sur notre Snapchat <a href="https://www.snapchat.com/add/perfectdrivee" target="_blank" rel="noopener">@perfectdrivee</a>. Mentionnez l'offre dans le message de votre demande.</p></div>
+        <div class="faq-a"><p><b>-10 % sur toutes nos locations</b> réservées directement sur ce site (remise appliquée automatiquement au prix de la location).</p><p>D'autres offres passent aussi régulièrement (semaine du lundi au vendredi, week-end…) sur notre Snapchat <a href="https://www.snapchat.com/add/perfectdrivee" target="_blank" rel="noopener">@perfectdrivee</a>. Mentionnez l'offre dans le message de votre demande.</p></div>
       </details>
     </div>
     <p class="faq-more">Une autre question ? Écrivez-nous sur <a href="https://wa.me/33762711498" target="_blank" rel="noopener">WhatsApp</a> ou à <a href="mailto:contact.perfectdrive@gmail.com">contact.perfectdrive@gmail.com</a>.</p>
@@ -724,21 +729,31 @@ const FLEET = [
 
 const $ = s => document.querySelector(s);
 const cars = $("#cars");
+const euro = n => (Math.round(n*100)/100).toLocaleString("fr-FR", {maximumFractionDigits:2}) + " €";
+// Remise accordée aux réservations faites sur le site (mise à jour par le back-office si elle change)
+let REMISE_PCT = 10;
+const remise = p => Math.round(p * (100 - REMISE_PCT)) / 100;          // prix après remise
+const avecRemise = p => REMISE_PCT ? `<s class="old">${euro(p)}</s> ${euro(remise(p))}` : euro(p);
+const escH = s => String(s ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+const vignette = u => String(u).replace(/sz=w\d+/, "sz=w600");   // photos Drive : version légère pour les cartes
+function renderCars(){
 cars.innerHTML = FLEET.map(c => `
   <label class="car">
-    <input type="radio" name="vehicule" data-id="${c.id}" value="${c.make} ${c.model} – ${c.color}">
+    <input type="radio" name="vehicule" data-id="${escH(c.id)}" value="${escH(`${c.make} ${c.model} – ${c.color}`)}">
     <div class="card">
       ${c.photos && c.photos.length
-        ? `<div class="swatch photo"><img src="${c.photos[0]}" alt="${c.make} ${c.model} ${c.color}" decoding="async">
+        ? `<div class="swatch photo"><img src="${escH(vignette(c.photos[0]))}" alt="${escH(`${c.make} ${c.model} ${c.color}`)}" decoding="async">
              <button type="button" class="pics" data-car="${c.id}">📷 ${c.photos.length} photo${c.photos.length>1?"s":""}</button></div>`
         : `<div class="swatch" style="background:${c.sw}"></div>`}
       <div class="make">${c.make}</div>
       <div class="model">${c.model}</div>
       <div class="color">${c.color}</div>
-      <div class="price">${c.tarif ? `${c.tarif.jour.illimite ? "Dès " : ""}${c.tarif.jour.prix} € / 24 h` : (c.price || "Tarif sur demande")}</div>
+      <div class="price">${c.tarif ? `${c.tarif.jour.illimite ? "Dès " : ""}${avecRemise(c.tarif.jour.prix)} / 24 h` : (c.price || "Tarif sur demande")}</div>
       ${c.tarif && c.tarif.illimiteSeul ? `<div class="gamme">∞ Km illimité</div>` : ""}
     </div>
   </label>`).join("");
+}
+renderCars();
 
 // Galerie photos
 const lb = document.createElement("div");
@@ -773,7 +788,6 @@ const fmt = d => d ? new Date(d+"T00:00").toLocaleDateString("fr-FR",{weekday:"s
 
 // ====== Tarifs ======
 const CAUTION_DEFAUT = 1000;   // caution si le véhicule n'en précise pas (champ "caution" dans FLEET)
-const euro = n => (Math.round(n*100)/100).toLocaleString("fr-FR", {maximumFractionDigits:2}) + " €";
 const nbJours = (a, b) => Math.max(1, Math.round((new Date(b) - new Date(a)) / 864e5));
 const isWeekend = () => /week/i.test(val("formule"));
 
@@ -782,7 +796,7 @@ function renderTarifs(car){
   const prevF = val("formule"), prevK = val("kilometrage");
   const f = (v, title, sub) => `<label class="opt"><input type="radio" name="formule" value="${v}"><div><b>${title}</b><small>${sub}</small></div></label>`;
   const only = !!(t && t.illimiteSeul);
-  const sub = (x) => only ? `${euro(x.prix)} · km illimité` : `${euro(x.prix)} · ${x.km} km inclus`;
+  const sub = (x) => only ? `${avecRemise(x.prix)} · km illimité` : `${avecRemise(x.prix)} · ${x.km} km inclus`;
   $("#opts-formule").innerHTML =
     f("Journée (24 h)", "Journée · 24 h", t ? sub(t.jour) : "Tarif sur demande") +
     f("Week-end (48 h)", "Week-end · 48 h", t ? sub(t.weekend) : "Tarif sur demande");
@@ -815,33 +829,36 @@ function updateKmSup(){
 form.addEventListener("change", e => { if (e.target.name === "kilometrage") updateKmSup(); });
 
 /** Estimation hors offres : { prix, km } ou null */
+/** Estimation : { prix (à payer, remise déduite), base (location avant remise), reduc, km } */
 function estimate(){
   const t = curCar && curCar.tarif, a = $("#date_debut").value, b = $("#date_fin").value;
   if (!t || !a || !b) return null;
   const illi = val("kilometrage") === "Illimité";
   const sup = +($("#km_sup").value || 0);
-  let prix, km;
+  let base, km = null, extra = 0;
   if (t.illimiteSeul) {
-    prix = isWeekend() ? Math.max(1, Math.round(nbJours(a, b) / 2)) * t.weekend.prix : nbJours(a, b) * t.jour.prix;
-    return { prix, km: null };
+    base = isWeekend() ? Math.max(1, Math.round(nbJours(a, b) / 2)) * t.weekend.prix : nbJours(a, b) * t.jour.prix;
+  } else {
+    if (isWeekend()) { const n = Math.max(1, Math.round(nbJours(a, b) / 2)); base = n * (illi ? t.weekend.illimite : t.weekend.prix); km = n * t.weekend.km; }
+    else { const n = nbJours(a, b); base = n * (illi ? t.jour.illimite : t.jour.prix); km = n * t.jour.km; }
+    if (!base) return null;
+    if (!illi && sup) { extra = sup * t.kmSup; km += sup; }
+    if (illi) km = null;
   }
-  if (isWeekend()) { const n = Math.max(1, Math.round(nbJours(a, b) / 2)); prix = n * (illi ? t.weekend.illimite : t.weekend.prix); km = n * t.weekend.km; }
-  else { const n = nbJours(a, b); prix = n * (illi ? t.jour.illimite : t.jour.prix); km = n * t.jour.km; }
-  if (!prix) return null;
-  if (!illi && sup) { prix += sup * t.kmSup; km += sup; }
-  return { prix, km: illi ? null : km };
+  const reduc = Math.round(base * REMISE_PCT) / 100;     // la remise porte sur la location (pas sur les km en plus)
+  return { prix: Math.round((base - reduc + extra) * 100) / 100, base, reduc, km };
 }
 
 // ====== Fiche véhicule ======
 function tarifRows(car){
   const t = car.tarif, c = euro(car.caution || CAUTION_DEFAUT);
   if (!t) return `<p class="tnote">Tarif communiqué sur demande.</p>`;
-  if (t.illimiteSeul) return `<div class="trow"><span>24 h · km illimité</span><span>${euro(t.jour.prix)}</span></div>
-    <div class="trow"><span>Week-end 48 h · km illimité</span><span>${euro(t.weekend.prix)}</span></div>
+  if (t.illimiteSeul) return `<div class="trow"><span>24 h · km illimité</span><span>${avecRemise(t.jour.prix)}</span></div>
+    <div class="trow"><span>Week-end 48 h · km illimité</span><span>${avecRemise(t.weekend.prix)}</span></div>
     <div class="trow"><span>Caution</span><span>${c}</span></div>`;
-  return `<div class="trow"><span>24 h · ${t.jour.km} km inclus</span><span>${euro(t.jour.prix)}</span></div>
-    <div class="trow"><span>Week-end 48 h · ${t.weekend.km} km inclus</span><span>${euro(t.weekend.prix)}</span></div>
-    ${t.jour.illimite ? `<div class="trow"><span>Illimité 24 h / week-end</span><span>${euro(t.jour.illimite)} / ${euro(t.weekend.illimite)}</span></div>` : ""}
+  return `<div class="trow"><span>24 h · ${t.jour.km} km inclus</span><span>${avecRemise(t.jour.prix)}</span></div>
+    <div class="trow"><span>Week-end 48 h · ${t.weekend.km} km inclus</span><span>${avecRemise(t.weekend.prix)}</span></div>
+    ${t.jour.illimite ? `<div class="trow"><span>Illimité 24 h / week-end</span><span>${euro(remise(t.jour.illimite))} / ${euro(remise(t.weekend.illimite))}</span></div>` : ""}
     <div class="trow"><span>Km supplémentaire</span><span>${euro(t.kmSup)} / km</span></div>
     <div class="trow"><span>Caution</span><span>${c}</span></div>`;
 }
@@ -861,7 +878,7 @@ function renderDetail(car){
       <details class="more"><summary>Description, équipements & tarifs</summary>
         <p class="bio">${car.bio || "Contactez-nous pour plus d'informations sur ce véhicule."}</p>
         ${car.features ? `<div class="chips">${car.features.map(f => `<span>${f}</span>`).join("")}</div>` : ""}
-        <div class="tarifs"><h4>Tarifs hors offres${car.tarif && car.tarif.illimiteSeul ? " · km illimité" : ""}</h4>${tarifRows(car)}</div>
+        <div class="tarifs"><h4>Tarifs${REMISE_PCT ? ` · -${REMISE_PCT} % réservé sur le site` : ""}${car.tarif && car.tarif.illimiteSeul ? " · km illimité" : ""}</h4>${tarifRows(car)}</div>
         ${car.offres && car.offres.length ? `<div class="offres">${car.offres.map(o => `<span>🔥 ${o}</span>`).join("")}</div>` : ""}
         <div class="livraison">🚚 <span><b>Livraison gratuite</b>, uniquement sur Troyes.</span></div>
       </details>
@@ -1039,7 +1056,7 @@ function updateSummary(){
   const est = estimate(), sup = +($("#km_sup").value || 0);
   const kmTxt = val("kilometrage") === "Illimité" ? "Kilométrage illimité" : (est ? `${est.km} km inclus${sup ? ` (dont ${sup} km supplémentaires)` : ""}` : "");
   $("#summary").innerHTML = `<b>${v || "Véhicule à choisir"}</b><br>${val("formule") || ""}${kmTxt ? " · " + kmTxt : ""}<br>${d1 && $("#heure_debut").value ? `Départ ${fmt(d1)} à ${hFmt($("#heure_debut").value)} → retour ${fmt(d2)} à ${hFmt($("#heure_fin").value)}` : ""}` +
-    (est ? `<div class="estim">Prix estimé : <b>${euro(est.prix)}</b> <small>(hors offres, confirmé par nos soins)</small></div>` : (curCar && d2 ? `<div class="estim">Tarif communiqué sur demande</div>` : ""));
+    (est ? `<div class="estim">Prix estimé : <b>${euro(est.prix)}</b>${est.reduc ? ` <small>(remise site -${REMISE_PCT} % : -${euro(est.reduc)} incluse)</small>` : ""} <small>confirmé par nos soins</small></div>` : (curCar && d2 ? `<div class="estim">Tarif communiqué sur demande</div>` : ""));
   if (window.__bookingReady) updateBooking();
 }
 form.addEventListener("input", updateSummary);
@@ -1178,6 +1195,27 @@ async function loadDispo(){
 renderTarifs(null);
 loadDispo();
 
+// ====== Flotte en direct (gérée depuis l'admin, onglet "Véhicules") ======
+function majPromo(){
+  const b = $("#promo-hero"); if (b) { b.hidden = !REMISE_PCT; b.textContent = `-${REMISE_PCT} % en réservant sur le site`; }
+}
+async function loadFlotte(){
+  if (!API_URL) return;
+  try {
+    const j = await (await fetch(API_URL + "?action=flotte")).json();
+    if (!j.success || !Array.isArray(j.fleet) || !j.fleet.length) return;
+    const sel = curCar && curCar.id;
+    if (typeof j.remise === "number") { REMISE_PCT = j.remise; majPromo(); }
+    FLEET.splice(0, FLEET.length, ...j.fleet.filter(v => v && v.id && v.make && v.tarif));
+    renderCars();
+    if (sel && FLEET.some(v => v.id === sel)) {
+      const r = cars.querySelector(`input[data-id="${CSS.escape(sel)}"]`); if (r) r.checked = true;
+      selectCar(sel);
+    } else if (sel) { curCar = null; renderDetail(null); selStart = selEnd = null; renderHours(); updateSummary(); }
+  } catch (err) { console.warn("Flotte en ligne indisponible", err); }
+}
+loadFlotte();
+
 // ====== Étapes, récapitulatif animé, barre mobile ======
 const steps = [...document.querySelectorAll(".step-card")];
 let curStep = 1;
@@ -1212,7 +1250,7 @@ let shownPrice = 0;
 function countTo(el, to){
   const from = shownPrice, t0 = performance.now(); shownPrice = to;
   const step = now => { const k = Math.min(1, (now - t0) / 500), e = 1 - Math.pow(1 - k, 3);
-    el.textContent = euro(Math.round(from + (to - from) * e)); if (k < 1) requestAnimationFrame(step); };
+    el.textContent = k < 1 ? euro(Math.round(from + (to - from) * e)) : euro(to); if (k < 1) requestAnimationFrame(step); };
   requestAnimationFrame(step);
 }
 let lastPeriod = "", lastPrice = null;
@@ -1228,7 +1266,7 @@ function updateBooking(){
   // estimation
   const price = ok && est ? est.prix : null;
   if (price !== lastPrice) { if (price != null) countTo($("#p-price"), price); else { $("#p-price").textContent = curCar && ok ? "Sur devis" : "—"; shownPrice = 0; } }
-  $("#p-km").textContent = ok ? (est && est.km ? `${est.km} km inclus · hors offres` : val("kilometrage") === "Illimité" ? "Kilométrage illimité · hors offres" : "") : "";
+  $("#p-km").innerHTML = ok && est ? `${est.km ? `${est.km} km inclus` : "Kilométrage illimité"}${est.reduc ? `<br><span class="remise-l">-${REMISE_PCT} % site : <s>${euro(est.base)}</s> → ${euro(est.base - est.reduc)}</span>` : ""}` : "";
   // résumés des étapes repliées
   const sum = n => $(`#step-${n} .sum`);
   sum(1).textContent = ok ? `${shortD(selStart)} ${hFmt(h)} → ${shortD(selEnd)} ${hFmt(h)}` : "";
@@ -1241,7 +1279,7 @@ function updateBooking(){
   bar.classList.toggle("show", !!curCar && getComputedStyle(form).display !== "none");
   $("#mb-dates").textContent = ok ? `${shortW(selStart)} ${hFmt(h)} → ${shortW(selEnd)}` : curCar ? `${curCar.model} · choisissez vos dates` : "Choisissez un véhicule";
   const mp = $("#mb-price");
-  mp.textContent = price != null ? `${euro(price)} estimé` : "";
+  mp.textContent = price != null ? `${euro(price)} estimé${est && est.reduc ? ` · -${REMISE_PCT} %` : ""}` : "";
   if (price !== lastPrice && price != null) { mp.classList.remove("bump"); void mp.offsetWidth; mp.classList.add("bump"); }
   lastPrice = price;
   const cta = $("#mb-cta");
@@ -1290,6 +1328,8 @@ form.addEventListener("submit", async e => {
     km_sup: +($("#km_sup").value || 0),
     km_inclus: (estimate() || {}).km || "",
     prix_estime: (estimate() || {}).prix || "",
+    remise_site: (estimate() || {}).reduc || 0,
+    remise_pct: REMISE_PCT,
     documents: {},
   };
 

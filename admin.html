@@ -56,7 +56,43 @@
   .login{max-width:380px;margin:12vh auto 0}
   .toggle{font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center;cursor:pointer;margin-top:4px}
   .toggle input{width:auto;accent-color:var(--accent)}
-  .modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:16px}
+  .views{display:flex;gap:8px;margin:20px 0 0;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:5px}
+  .view{flex:1;border:0;border-radius:10px;padding:11px;background:transparent;color:var(--muted);font:600 15px Inter;cursor:pointer}
+  .view.on{background:var(--accent);color:#fff}
+  .fl-item{display:flex;flex-wrap:wrap;gap:12px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px;background:var(--panel2)}
+  .fl-item img,.fl-item .noimg{width:86px;height:64px;border-radius:8px;object-fit:cover;flex:none;background:#000}
+  .fl-info{flex:1;min-width:0}
+  .fl-info b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fl-info small{display:block;color:var(--muted);font-size:13px}
+  .fl-info .pr{color:var(--accent2);font-size:13px;font-weight:600}
+  .fl-acts{display:flex;gap:6px;width:100%;border-top:1px dashed var(--line);padding-top:10px}
+  .fl-acts .grow{flex:1}
+  .fl-acts .btn{padding:6px 9px}
+  .sheet{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.65);display:none;align-items:flex-end;justify-content:center}
+  .sheet.open{display:flex}
+  .sheet-box{background:var(--panel);border:1px solid var(--line);border-radius:18px 18px 0 0;width:100%;max-width:640px;max-height:94vh;display:flex;flex-direction:column}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .sheet-head h3{font:600 18px Oswald,sans-serif;letter-spacing:.04em;text-transform:uppercase}
+  .sheet-body{padding:16px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .sheet-body h4{font:600 14px Oswald,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--accent2);margin:20px 0 6px}
+  .sheet-body textarea{width:100%;background:var(--panel2);border:1.5px solid var(--line);border-radius:10px;color:var(--text);font:15px Inter;padding:11px 12px;resize:vertical}
+  .sheet-foot{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+  .sheet-foot .btn{flex:1;max-width:200px;padding:12px}
+  .hint{font-size:12px;color:var(--muted);font-weight:400}
+  .ph-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+  .ph{position:relative;border-radius:10px;overflow:hidden;background:#000;aspect-ratio:4/3;border:1px solid var(--line)}
+  .ph img{width:100%;height:100%;object-fit:cover;display:block}
+  .ph .main{position:absolute;left:6px;top:6px;background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px}
+  .ph .tools{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;background:linear-gradient(transparent,rgba(0,0,0,.8));padding:4px}
+  .ph .tools button{border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:6px;width:30px;height:28px;cursor:pointer;font-size:13px}
+  .ph .tools button.del{background:rgba(220,38,38,.85)}
+  .ph-add{display:inline-block;cursor:pointer}
+  .seg2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .seg2 input{position:absolute;opacity:0}
+  .seg2 span{display:block;text-align:center;padding:11px 6px;border-radius:10px;border:1.5px solid var(--line);background:var(--panel2);font-weight:600;font-size:14px;cursor:pointer}
+  .seg2 input:checked + span{border-color:var(--accent);background:rgba(47,123,255,.16)}
+  @media (min-width:700px){ .sheet{align-items:center} .sheet-box{border-radius:18px} .ph-grid{grid-template-columns:repeat(4,1fr)} }
+  .modal{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:16px}
   .modal.open{display:flex}
   .modal-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5)}
   .modal-box h3{font:600 18px Oswald,sans-serif;letter-spacing:.04em;text-transform:uppercase;margin-bottom:10px}
@@ -88,6 +124,17 @@
 
   <!-- Planning -->
   <section id="v-app" hidden>
+    <div class="views" role="tablist">
+      <button type="button" class="view on" data-view="planning" role="tab">📅 Planning</button>
+      <button type="button" class="view" data-view="flotte" role="tab">🚗 Véhicules</button>
+    </div>
+    <div id="view-flotte" hidden>
+      <h1>Mes véhicules</h1>
+      <p class="sub">Ajoutez, modifiez ou retirez un véhicule. Les changements apparaissent directement sur le site. Le premier de la liste s'affiche en premier.</p>
+      <button type="button" class="btn primary" id="fl-add" style="margin-bottom:14px">＋ Ajouter un véhicule</button>
+      <div id="fl-list"></div>
+    </div>
+    <div id="view-planning">
     <h1>Planning des véhicules</h1>
     <p class="sub">Indiquez l'heure <b>réelle</b> de départ et de retour. Le site ajoute automatiquement <b id="marge">1 h</b> de marge : un retour à 18h devient disponible pour les clients à 19h.</p>
 
@@ -117,8 +164,68 @@
       <label class="toggle"><input type="checkbox" id="show-past"> Afficher aussi les périodes terminées</label>
       <div id="list" style="margin-top:14px"></div>
     </div>
+    </div>
   </section>
 </main>
+
+<!-- Éditeur de véhicule -->
+<div class="sheet" id="ved" role="dialog" aria-modal="true" aria-labelledby="ved-t">
+  <form class="sheet-box" id="ved-form" novalidate>
+    <div class="sheet-head"><h3 id="ved-t">Véhicule</h3><button type="button" class="btn sm" id="ved-x" aria-label="Fermer">✕</button></div>
+    <div class="sheet-body">
+      <div class="g g2">
+        <div><label for="v-make">Marque *</label><input id="v-make" required placeholder="ex. Renault"></div>
+        <div><label for="v-model">Modèle *</label><input id="v-model" required placeholder="ex. Clio 6 Esprit Alpine"></div>
+        <div><label for="v-color">Couleur · année</label><input id="v-color" placeholder="ex. Gris Rafale · 2026"></div>
+        <div><label for="v-tag">Accroche</label><input id="v-tag" placeholder="ex. 160 ch · Full options"></div>
+      </div>
+
+      <h4>Photos</h4>
+      <p class="hint">La 1<sup>re</sup> photo est la photo principale. Utilisez ◀ ▶ pour changer l'ordre.</p>
+      <div class="ph-grid" id="v-photos"></div>
+      <label class="btn ph-add"><input type="file" id="v-file" accept="image/*" multiple hidden>＋ Ajouter des photos</label>
+      <p class="msg" id="v-upmsg"></p>
+
+      <h4>Présentation</h4>
+      <label for="v-bio">Description</label>
+      <textarea id="v-bio" rows="3" placeholder="Quelques phrases pour donner envie…"></textarea>
+      <label for="v-feat" style="margin-top:10px">Équipements <span class="hint">(un par ligne)</span></label>
+      <textarea id="v-feat" rows="4" placeholder="Modèle 2026&#10;Sièges chauffants&#10;Boîte automatique"></textarea>
+
+      <h4>Tarifs (hors offres)</h4>
+      <div class="seg2">
+        <label><input type="radio" name="v-mode" value="km" checked><span>Kilométrage inclus</span></label>
+        <label><input type="radio" name="v-mode" value="illimite"><span>Km illimité uniquement</span></label>
+      </div>
+      <div class="g g2" style="margin-top:12px">
+        <div><label for="v-jp">Prix 24 h (€) *</label><input id="v-jp" type="number" inputmode="decimal" min="1" step="1"></div>
+        <div><label for="v-wp">Prix week-end 48 h (€) *</label><input id="v-wp" type="number" inputmode="decimal" min="1" step="1"></div>
+      </div>
+      <div id="v-kmbox">
+        <div class="g g2" style="margin-top:12px">
+          <div><label for="v-jk">Km inclus / 24 h *</label><input id="v-jk" type="number" inputmode="numeric" min="1" step="1" value="200"></div>
+          <div><label for="v-wk">Km inclus / week-end *</label><input id="v-wk" type="number" inputmode="numeric" min="1" step="1" value="400"></div>
+          <div><label for="v-ks">Prix du km en plus (€)</label><input id="v-ks" type="number" inputmode="decimal" min="0" step="0.05" value="0.5"></div>
+        </div>
+        <label class="toggle" style="margin-top:10px"><input type="checkbox" id="v-opt"> Proposer aussi une option « km illimité »</label>
+        <div class="g g2" id="v-optbox" hidden style="margin-top:8px">
+          <div><label for="v-ji">Prix illimité 24 h (€)</label><input id="v-ji" type="number" inputmode="decimal" min="1"></div>
+          <div><label for="v-wi">Prix illimité week-end (€)</label><input id="v-wi" type="number" inputmode="decimal" min="1"></div>
+        </div>
+      </div>
+      <div class="g g2" style="margin-top:12px">
+        <div><label for="v-caution">Caution (€)</label><input id="v-caution" type="number" inputmode="numeric" min="0" step="50" value="1000"></div>
+      </div>
+      <label for="v-off" style="margin-top:10px">Offres affichées <span class="hint">(optionnel, une par ligne)</span></label>
+      <textarea id="v-off" rows="2" placeholder="ex. Lun → Ven (4 jours) : 320 €"></textarea>
+      <p class="msg" id="v-msg"></p>
+    </div>
+    <div class="sheet-foot">
+      <button type="button" class="btn" id="ved-cancel">Annuler</button>
+      <button class="btn primary" id="ved-save">Enregistrer</button>
+    </div>
+  </form>
+</div>
 
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-t">
   <div class="modal-box">
@@ -174,10 +281,160 @@ $("#f-login").addEventListener("submit", async e => {
 function init(){
   show(true);
   $("#marge").textContent = DATA.marge + " h";
-  const opts = Object.entries(DATA.vehicules).map(([id, n]) => `<option value="${id}">${n}</option>`).join("");
-  $("#a-car").innerHTML = opts;
-  render();
+  refreshAll();
 }
+function refreshAll(){
+  const cur = $("#a-car").value;
+  $("#a-car").innerHTML = Object.entries(DATA.vehicules).map(([id, n]) => `<option value="${esc(id)}">${esc(n)}</option>`).join("");
+  if (cur && DATA.vehicules[cur]) $("#a-car").value = cur;
+  if (FILTER !== "all" && !DATA.vehicules[FILTER]) FILTER = "all";
+  render(); renderFleet();
+}
+
+// ---------- onglets Planning / Véhicules ----------
+document.querySelectorAll(".view").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".view").forEach(x => x.classList.toggle("on", x === b));
+  $("#view-planning").hidden = b.dataset.view !== "planning";
+  $("#view-flotte").hidden = b.dataset.view !== "flotte";
+  window.scrollTo({ top: 0 });
+}));
+
+// ---------- Véhicules ----------
+const thumb = u => String(u).replace(/sz=w\d+/, "sz=w400");
+const prixTxt = v => { const t = v.tarif; if (!t) return "Tarif sur demande";
+  return t.illimiteSeul ? `${t.jour.prix} € / 24 h · ${t.weekend.prix} € / WE · ∞ km`
+                        : `${t.jour.prix} € / 24 h · ${t.weekend.prix} € / WE · ${t.jour.km} km`; };
+function renderFleet(){
+  const fl = DATA.flotte || [];
+  $("#fl-list").innerHTML = fl.length ? fl.map((v, i) => `
+    <div class="fl-item">
+      ${v.photos && v.photos[0] ? `<img src="${esc(thumb(v.photos[0]))}" alt="">` : `<div class="noimg" style="background:${esc(v.sw || "#222")}"></div>`}
+      <div class="fl-info">
+        <b>${esc(v.make)} ${esc(v.model)}</b>
+        <small>${esc(v.color)} · caution ${esc(v.caution || 1000)} €</small>
+        <span class="pr">${esc(prixTxt(v))}</span>
+      </div>
+      <div class="fl-acts">
+        <button type="button" class="btn sm" data-up="${i}" ${i ? "" : "disabled"} aria-label="Monter">↑</button>
+        <button type="button" class="btn sm" data-down="${i}" ${i < fl.length - 1 ? "" : "disabled"} aria-label="Descendre">↓</button>
+        <span class="grow"></span>
+        <button type="button" class="btn sm" data-vedit="${esc(v.id)}">Modifier</button>
+        <button type="button" class="btn sm danger" data-vdel="${esc(v.id)}">Supprimer</button>
+      </div>
+    </div>`).join("") : `<p class="empty">Aucun véhicule.</p>`;
+}
+$("#fl-list").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b || b.disabled) return;
+  const fl = DATA.flotte;
+  if (b.dataset.vedit) openEditor(fl.find(v => v.id === b.dataset.vedit));
+  if (b.dataset.up || b.dataset.down) {
+    const i = +(b.dataset.up || b.dataset.down), j = b.dataset.up ? i - 1 : i + 1;
+    const ids = fl.map(v => v.id); [ids[i], ids[j]] = [ids[j], ids[i]];
+    b.disabled = true;
+    try { DATA = await call({ action: "admin_fleet_order", ids }); refreshAll(); } catch (err) { alert(err.message); b.disabled = false; }
+  }
+  if (b.dataset.vdel) {
+    const v = fl.find(x => x.id === b.dataset.vdel);
+    if (!(await demander("Supprimer le véhicule", `${v.make} ${v.model} – ${v.color}\n\n• Il disparaît du site et de l'admin.\n• Ses indisponibilités sont supprimées.\n• Ses photos ajoutées depuis l'admin partent à la corbeille Google Drive (récupérables 30 jours).\n\nImpossible s'il a des réservations à venir.`))) return;
+    b.disabled = true;
+    try { DATA = await call({ action: "admin_fleet_delete", id: v.id }); refreshAll(); } catch (err) { alert(err.message); b.disabled = false; }
+  }
+});
+
+// éditeur
+let EDIT = null, uploading = 0;
+const lines = t => t.split("\n").map(x => x.trim()).filter(Boolean);
+function openEditor(v){
+  EDIT = v ? JSON.parse(JSON.stringify(v)) : { photos: [], tarif: null };
+  const t = EDIT.tarif || {}, only = !!t.illimiteSeul;
+  $("#ved-t").textContent = v ? "Modifier le véhicule" : "Nouveau véhicule";
+  $("#v-make").value = EDIT.make || ""; $("#v-model").value = EDIT.model || ""; $("#v-color").value = EDIT.color || ""; $("#v-tag").value = EDIT.tagline || "";
+  $("#v-bio").value = EDIT.bio || ""; $("#v-feat").value = (EDIT.features || []).join("\n"); $("#v-off").value = (EDIT.offres || []).join("\n");
+  document.querySelector(`input[name="v-mode"][value="${only ? "illimite" : "km"}"]`).checked = true;
+  $("#v-jp").value = t.jour ? t.jour.prix : ""; $("#v-wp").value = t.weekend ? t.weekend.prix : "";
+  $("#v-jk").value = t.jour && t.jour.km ? t.jour.km : 200; $("#v-wk").value = t.weekend && t.weekend.km ? t.weekend.km : 400;
+  $("#v-ks").value = t.kmSup != null ? t.kmSup : 0.5;
+  const opt = !!(t.jour && t.jour.illimite); $("#v-opt").checked = opt;
+  $("#v-ji").value = opt ? t.jour.illimite : ""; $("#v-wi").value = opt ? t.weekend.illimite : "";
+  $("#v-caution").value = EDIT.caution || 1000;
+  $("#v-msg").textContent = ""; $("#v-upmsg").textContent = "";
+  syncMode(); renderPhotos();
+  $("#ved").classList.add("open"); document.body.style.overflow = "hidden";
+  $(".sheet-body").scrollTop = 0;
+}
+function closeEditor(){ $("#ved").classList.remove("open"); document.body.style.overflow = ""; EDIT = null; }
+$("#ved-x").onclick = $("#ved-cancel").onclick = closeEditor;
+$("#fl-add").onclick = () => openEditor(null);
+function syncMode(){
+  const only = document.querySelector('input[name="v-mode"]:checked').value === "illimite";
+  $("#v-kmbox").hidden = only; $("#v-optbox").hidden = !$("#v-opt").checked;
+}
+document.querySelectorAll('input[name="v-mode"]').forEach(r => r.addEventListener("change", syncMode));
+$("#v-opt").addEventListener("change", syncMode);
+
+function renderPhotos(){
+  const ph = EDIT.photos;
+  $("#v-photos").innerHTML = ph.map((u, i) => `
+    <div class="ph">
+      <img src="${esc(thumb(u))}" alt="Photo ${i + 1}">
+      ${i === 0 ? `<span class="main">Principale</span>` : ""}
+      <div class="tools">
+        <button type="button" data-pl="${i}" ${i ? "" : "disabled"} aria-label="Avancer">◀</button>
+        <button type="button" class="del" data-px="${i}" aria-label="Retirer">✕</button>
+        <button type="button" data-pr="${i}" ${i < ph.length - 1 ? "" : "disabled"} aria-label="Reculer">▶</button>
+      </div>
+    </div>`).join("") || `<p class="hint">Aucune photo pour l'instant.</p>`;
+}
+$("#v-photos").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const ph = EDIT.photos;
+  if (b.dataset.px) ph.splice(+b.dataset.px, 1);
+  if (b.dataset.pl) { const i = +b.dataset.pl; [ph[i - 1], ph[i]] = [ph[i], ph[i - 1]]; }
+  if (b.dataset.pr) { const i = +b.dataset.pr; [ph[i + 1], ph[i]] = [ph[i], ph[i + 1]]; }
+  renderPhotos();
+});
+// envoi des photos (réduites à 1600 px)
+async function reduire(file){
+  const bmp = await createImageBitmap(file);
+  const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas"); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+  const blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.85));
+  return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(",")[1]); fr.onerror = rej; fr.readAsDataURL(blob); });
+}
+$("#v-file").addEventListener("change", async e => {
+  const files = [...e.target.files]; e.target.value = "";
+  const m = $("#v-upmsg");
+  for (let i = 0; i < files.length; i++) {
+    uploading++; $("#ved-save").disabled = true;
+    m.className = "msg"; m.textContent = `Envoi de la photo ${i + 1} / ${files.length}…`;
+    try {
+      const data = await reduire(files[i]);
+      const r = await call({ action: "admin_photo", name: files[i].name, type: "image/jpeg", data });
+      if (EDIT) { EDIT.photos.push(r.url); renderPhotos(); }
+      m.className = "msg ok"; m.textContent = `✓ ${i + 1} photo(s) ajoutée(s)`;
+    } catch (err) { m.className = "msg err"; m.textContent = "Photo non envoyée : " + err.message; }
+    finally { uploading--; $("#ved-save").disabled = uploading > 0; }
+  }
+});
+$("#ved-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const only = document.querySelector('input[name="v-mode"]:checked').value === "illimite";
+  const opt = !only && $("#v-opt").checked;
+  const v = {
+    id: EDIT.id, sw: EDIT.sw, make: $("#v-make").value, model: $("#v-model").value, color: $("#v-color").value, tagline: $("#v-tag").value,
+    bio: $("#v-bio").value, features: lines($("#v-feat").value), offres: lines($("#v-off").value), photos: EDIT.photos,
+    caution: $("#v-caution").value,
+    tarif: only ? { illimiteSeul: true, jour: { prix: $("#v-jp").value }, weekend: { prix: $("#v-wp").value } }
+                : { jour: { prix: $("#v-jp").value, km: $("#v-jk").value, illimite: opt ? $("#v-ji").value : null },
+                    weekend: { prix: $("#v-wp").value, km: $("#v-wk").value, illimite: opt ? $("#v-wi").value : null }, kmSup: $("#v-ks").value },
+  };
+  const m = $("#v-msg"), b = $("#ved-save");
+  b.disabled = true; m.className = "msg"; m.textContent = "Enregistrement…";
+  try { DATA = await call({ action: "admin_fleet_save", vehicle: v }); closeEditor(); refreshAll(); }
+  catch (err) { m.className = "msg err"; m.textContent = err.message; m.scrollIntoView({ block: "center" }); }
+  finally { b.disabled = uploading > 0; }
+});
 
 function badge(e){
   if (e.kind === "blocage") return `<span class="badge b-block">Indisponible</span>`;
